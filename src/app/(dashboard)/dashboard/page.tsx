@@ -24,6 +24,11 @@ export default async function DashboardPage() {
     }),
     prisma.task.findMany({
       where: {
+        status: { not: 'done' },
+        OR: [
+          { assigneeId: session!.user.id },
+          { assigneeId: null },
+        ],
         project: {
           OR: [
             { ownerId: session!.user.id },
@@ -32,11 +37,11 @@ export default async function DashboardPage() {
         },
       },
       include: {
-        project: { select: { name: true } },
+        project: { select: { id: true, name: true } },
         assignee: { select: { name: true } },
       },
       take: 5,
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     }),
     prisma.task.groupBy({
       by: ['status'],
@@ -212,45 +217,55 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Recent Tasks */}
+        {/* New Tasks for User */}
         <div className="card p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">Последние задачи</h2>
+            <h2 className="text-lg font-semibold">Новые задачи для вас</h2>
           </div>
           {recentTasks.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 mx-auto mb-4 bg-surface-200 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-zinc-500">Задачи появятся здесь</p>
+              <p className="text-zinc-500">Нет новых задач — всё сделано! 🎉</p>
             </div>
           ) : (
             <ul className="space-y-2">
               {recentTasks.map((task) => (
-                <li
-                  key={task.id}
-                  className="p-3 rounded-lg hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-2 ${statusColors[task.status]}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-zinc-200 truncate">{task.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-zinc-500">{task.project.name}</span>
-                        <span className={`text-xs font-medium ${priorityColors[task.priority]}`}>
-                          {task.priority === 'urgent' && '🔴'}
-                          {task.priority === 'high' && '🟠'}
-                          {task.priority === 'medium' && '🟡'}
-                          {task.priority === 'low' && '🟢'}
-                        </span>
-                        <span className="text-xs text-zinc-600">
-                          {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true, locale: ru })}
-                        </span>
+                <li key={task.id}>
+                  <Link
+                    href={`/projects/${task.project.id}`}
+                    className="block p-3 rounded-lg hover:bg-white/5 transition-colors group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${statusColors[task.status]}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                          {task.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-zinc-500">{task.project.name}</span>
+                          <span className={`text-xs font-medium ${priorityColors[task.priority]}`}>
+                            {task.priority === 'urgent' && '🔴'}
+                            {task.priority === 'high' && '🟠'}
+                            {task.priority === 'medium' && '🟡'}
+                            {task.priority === 'low' && '🟢'}
+                          </span>
+                          {!task.assignee && (
+                            <span className="text-xs text-amber-500">• Не назначена</span>
+                          )}
+                          <span className="text-xs text-zinc-600">
+                            {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: ru })}
+                          </span>
+                        </div>
                       </div>
+                      <svg className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
-                  </div>
+                  </Link>
                 </li>
               ))}
             </ul>
