@@ -91,10 +91,11 @@ export function AnalyticsCharts({
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1c1c1f',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
                     borderRadius: '8px',
-                    color: '#e4e4e7',
+                    color: '#172b4d',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   }}
                 />
               </PieChart>
@@ -136,10 +137,11 @@ export function AnalyticsCharts({
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1c1c1f',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
                     borderRadius: '8px',
-                    color: '#e4e4e7',
+                    color: '#172b4d',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   }}
                 />
               </PieChart>
@@ -166,25 +168,26 @@ export function AnalyticsCharts({
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={projectData} layout="vertical">
-                <XAxis type="number" stroke="#52525b" fontSize={12} />
+                <XAxis type="number" stroke="#6b7280" fontSize={12} />
                 <YAxis
                   type="category"
                   dataKey="name"
                   width={100}
-                  stroke="#52525b"
+                  stroke="#6b7280"
                   fontSize={12}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1c1c1f',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e0e0e0',
                     borderRadius: '8px',
-                    color: '#e4e4e7',
+                    color: '#172b4d',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   }}
                 />
                 <Bar
                   dataKey="tasks"
-                  fill="#6366f1"
+                  fill="#0052cc"
                   radius={[0, 4, 4, 0]}
                 />
               </BarChart>
