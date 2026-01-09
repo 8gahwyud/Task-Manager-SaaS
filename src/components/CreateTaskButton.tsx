@@ -86,7 +86,7 @@ export function CreateTaskButton({ projectId, status, members, onCreated }: Crea
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full p-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-700 hover:border-white/20 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full p-3 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

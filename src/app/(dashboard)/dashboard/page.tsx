@@ -193,13 +193,13 @@ export default async function DashboardPage() {
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:bg-accent/20 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 group-hover:text-white transition-colors">
+                        <p className="font-medium text-gray-900 group-hover:text-accent transition-colors">
                           {project.name}
                         </p>
                         <p className="text-sm text-gray-600">
@@ -242,7 +242,7 @@ export default async function DashboardPage() {
                     <div className="flex items-start gap-3">
                       <div className={`w-2 h-2 rounded-full mt-2 ${statusColors[task.status]}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate group-hover:text-white transition-colors">
+                        <p className="font-medium text-gray-900 truncate group-hover:text-accent transition-colors">
                           {task.title}
                         </p>
                         <div className="flex items-center gap-2 mt-1">

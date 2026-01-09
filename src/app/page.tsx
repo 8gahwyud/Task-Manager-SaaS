@@ -120,13 +120,6 @@ export default async function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="py-8 border-t border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 text-center text-gray-500 text-sm">
-          TaskFlow MVP — создано за выходные ✨
-        </div>
-      </footer>
     </div>
   )
 }
