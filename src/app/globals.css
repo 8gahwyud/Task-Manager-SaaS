@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-geist-sans: 'Satoshi', system-ui, sans-serif;
+  --font-geist-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: linear-gradient(135deg, #0a0a0b 0%, #111114 50%, #0d0d10 100%);
+  min-height: 100vh;
+  color: #e4e4e7;
+  font-family: var(--font-geist-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+a, button {
+  transition: all 0.15s ease;
+}
+
+/* Selection */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Input autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #1c1c1f inset;
+  -webkit-text-fill-color: #e4e4e7;
+  caret-color: #e4e4e7;
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  
+  .glass-hover:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-hover text-white font-medium px-4 py-2 rounded-lg transition-all duration-200;
+    @apply focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-surface;
+  }
+
+  .btn-secondary {
+    @apply bg-surface-200 hover:bg-surface-300 text-zinc-200 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+    @apply border border-white/5 hover:border-white/10;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-white/5 text-zinc-400 hover:text-zinc-200 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-surface-100 border border-white/5 rounded-lg px-4 py-3 text-zinc-100;
+    @apply placeholder:text-zinc-500 focus:border-accent/50 focus:ring-1 focus:ring-accent/30;
+    @apply transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-surface-100/50 backdrop-blur-sm border border-white/5 rounded-xl;
+  }
+}
+
+/* Drag and drop styles */
+.dragging {
+  opacity: 0.5;
+  cursor: grabbing !important;
+}
+
+.drop-indicator {
+  background: linear-gradient(90deg, transparent, #6366f1, transparent);
+  height: 2px;
+  border-radius: 1px;
+}
+
