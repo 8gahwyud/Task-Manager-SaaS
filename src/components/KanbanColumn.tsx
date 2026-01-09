@@ -24,16 +24,16 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       className={clsx(
-        'w-80 flex-shrink-0 flex flex-col bg-surface-50/30 rounded-xl',
+        'w-80 flex-shrink-0 flex flex-col bg-gray-50 rounded-lg border border-gray-200',
         isOver && 'ring-2 ring-accent/30'
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-white/5">
+      <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${color}`} />
-          <h3 className="font-semibold text-zinc-200">{title}</h3>
-          <span className="text-sm text-zinc-500 bg-surface-200 px-2 py-0.5 rounded-full">
+          <h3 className="font-semibold text-gray-900">{title}</h3>
+          <span className="text-sm text-gray-600 bg-gray-50 px-2 py-0.5 rounded-full">
             {count}
           </span>
         </div>
@@ -46,4 +46,5 @@ export function KanbanColumn({
     </div>
   )
 }
+
 

@@ -35,7 +35,7 @@ export default async function ProjectsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Проекты</h1>
-          <p className="text-zinc-500">
+          <p className="text-gray-600">
             Управляйте своими проектами и задачами
           </p>
         </div>
@@ -45,13 +45,13 @@ export default async function ProjectsPage() {
       {/* Projects Grid */}
       {projects.length === 0 ? (
         <div className="card p-12 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-surface-200 rounded-2xl flex items-center justify-center">
-            <svg className="w-10 h-10 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-20 h-20 mx-auto mb-6 bg-gray-50 rounded-2xl flex items-center justify-center">
+            <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
             </svg>
           </div>
           <h2 className="text-xl font-semibold mb-2">Нет проектов</h2>
-          <p className="text-zinc-500 mb-6 max-w-md mx-auto">
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
             Создайте свой первый проект, чтобы начать управлять задачами
           </p>
           <CreateProjectButton />
@@ -75,10 +75,10 @@ export default async function ProjectsPage() {
               <Link
                 key={project.id}
                 href={`/projects/${project.id}`}
-                className="card p-6 hover:border-white/10 transition-all duration-300 group"
+                className="card p-6 hover:border-gray-300 transition-all duration-300 group"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-purple-500/20 flex items-center justify-center text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-colors">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
@@ -94,7 +94,7 @@ export default async function ProjectsPage() {
                   {project.name}
                 </h3>
                 {project.description && (
-                  <p className="text-sm text-zinc-500 mb-4 line-clamp-2">
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                     {project.description}
                   </p>
                 )}
@@ -102,10 +102,10 @@ export default async function ProjectsPage() {
                 {/* Progress */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-zinc-500">Прогресс</span>
-                    <span className="text-zinc-300">{progress}%</span>
+                    <span className="text-gray-600">Прогресс</span>
+                    <span className="text-gray-700">{progress}%</span>
                   </div>
-                  <div className="h-1.5 bg-surface-300 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-accent to-purple-500 rounded-full transition-all duration-500"
                       style={{ width: `${progress}%` }}
@@ -115,13 +115,13 @@ export default async function ProjectsPage() {
 
                 {/* Stats */}
                 <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1.5 text-zinc-500">
+                  <div className="flex items-center gap-1.5 text-gray-600">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                     {project._count.tasks} задач
                   </div>
-                  <div className="flex items-center gap-1.5 text-zinc-500">
+                  <div className="flex items-center gap-1.5 text-gray-600">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
@@ -135,14 +135,14 @@ export default async function ProjectsPage() {
                     {project.members.slice(0, 4).map((member) => (
                       <div
                         key={member.id}
-                        className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white text-xs font-medium border-2 border-surface-100"
+                        className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium border-2 border-white"
                         title={member.user.name}
                       >
                         {member.user.name.charAt(0).toUpperCase()}
                       </div>
                     ))}
                     {project.members.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-surface-300 flex items-center justify-center text-zinc-400 text-xs font-medium border-2 border-surface-100">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
                         +{project.members.length - 4}
                       </div>
                     )}
@@ -156,4 +156,5 @@ export default async function ProjectsPage() {
     </div>
   )
 }
+
 

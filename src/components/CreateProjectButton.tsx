@@ -53,7 +53,7 @@ export function CreateProjectButton() {
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Создать проект">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Название проекта
             </label>
             <input
@@ -68,7 +68,7 @@ export function CreateProjectButton() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
               Описание (опционально)
             </label>
             <textarea
@@ -102,4 +102,5 @@ export function CreateProjectButton() {
     </>
   )
 }
+
 

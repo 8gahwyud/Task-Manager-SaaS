@@ -44,7 +44,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-accent to-purple-500 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
             <svg
               className="w-6 h-6 text-white"
               fill="none"
@@ -59,19 +59,19 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <span className="text-xl font-semibold">TaskFlow</span>
+          <span className="text-xl font-semibold text-gray-900">TaskFlow</span>
         </Link>
 
         {/* Form Card */}
         <div className="card p-8">
-          <h1 className="text-2xl font-bold text-center mb-2">Вход в аккаунт</h1>
-          <p className="text-zinc-500 text-center mb-8">
+          <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">Вход в аккаунт</h1>
+          <p className="text-gray-600 text-center mb-8">
             Введите данные для входа
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
               <input
@@ -86,7 +86,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Пароль
               </label>
               <input
@@ -132,7 +132,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <span className="text-zinc-500">Нет аккаунта? </span>
+            <span className="text-gray-600">Нет аккаунта? </span>
             <Link href="/register" className="text-accent hover:text-accent-hover font-medium">
               Зарегистрироваться
             </Link>
@@ -142,4 +142,5 @@ export default function LoginPage() {
     </div>
   )
 }
+
 

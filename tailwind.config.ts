@@ -9,30 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Linear-inspired dark theme
+        // Linear/Trello-inspired light theme
         'surface': {
-          DEFAULT: '#0a0a0b',
-          50: '#18181b',
-          100: '#1c1c1f',
-          200: '#232328',
-          300: '#2c2c32',
+          DEFAULT: '#ffffff',
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#eeeeee',
+          300: '#e0e0e0',
         },
         'accent': {
-          DEFAULT: '#6366f1',
-          hover: '#818cf8',
-          muted: '#4f46e5',
+          DEFAULT: '#0052cc',
+          hover: '#0065ff',
+          muted: '#0065ff',
         },
         'priority': {
-          urgent: '#ef4444',
-          high: '#f97316',
-          medium: '#eab308',
-          low: '#22c55e',
+          urgent: '#de350b',
+          high: '#ff5630',
+          medium: '#ffab00',
+          low: '#36b37e',
         },
         'status': {
-          todo: '#6b7280',
-          progress: '#3b82f6',
-          review: '#a855f7',
-          done: '#10b981',
+          todo: '#8993a4',
+          progress: '#0052cc',
+          review: '#8777d9',
+          done: '#36b37e',
         },
       },
       fontFamily: {
@@ -64,4 +64,5 @@ const config: Config = {
 }
 
 export default config
+
 

@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ru" className="dark">
+    <html lang="ru">
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link
@@ -29,20 +29,21 @@ export default function RootLayout({
             position="bottom-right"
             toastOptions={{
               style: {
-                background: '#1c1c1f',
-                color: '#e4e4e7',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                background: '#ffffff',
+                color: '#172b4d',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               },
               success: {
                 iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#1c1c1f',
+                  primary: '#36b37e',
+                  secondary: '#ffffff',
                 },
               },
               error: {
                 iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#1c1c1f',
+                  primary: '#de350b',
+                  secondary: '#ffffff',
                 },
               },
             }}
@@ -52,4 +53,5 @@ export default function RootLayout({
     </html>
   )
 }
+
 

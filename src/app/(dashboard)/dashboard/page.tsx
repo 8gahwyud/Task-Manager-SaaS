@@ -95,7 +95,7 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold mb-2">
           Привет, {session!.user.name}! 👋
         </h1>
-        <p className="text-zinc-500">
+        <p className="text-gray-600">
           Вот обзор ваших задач и проектов
         </p>
       </div>
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
         ].map((stat, i) => (
           <div key={i} className="card p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-zinc-500 text-sm">{stat.label}</span>
+              <span className="text-gray-600 text-sm">{stat.label}</span>
               <div className={`${stat.bg} ${stat.color} p-2 rounded-lg`}>
                 {stat.icon}
               </div>
@@ -174,12 +174,12 @@ export default async function DashboardPage() {
           </div>
           {projects.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 bg-surface-200 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
-              <p className="text-zinc-500 mb-4">У вас пока нет проектов</p>
+              <p className="text-gray-600 mb-4">У вас пока нет проектов</p>
               <Link href="/projects" className="btn-primary inline-block">
                 Создать проект
               </Link>
@@ -190,24 +190,24 @@ export default async function DashboardPage() {
                 <li key={project.id}>
                   <Link
                     href={`/projects/${project.id}`}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors group"
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent/20 to-purple-500/20 flex items-center justify-center text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-colors">
+                      <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:from-accent/30 group-hover:to-purple-500/30 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-medium text-zinc-200 group-hover:text-white transition-colors">
+                        <p className="font-medium text-gray-900 group-hover:text-white transition-colors">
                           {project.name}
                         </p>
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-sm text-gray-600">
                           {project._count.tasks} задач
                         </p>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-zinc-600 group-hover:text-zinc-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-500 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -224,12 +224,12 @@ export default async function DashboardPage() {
           </div>
           {recentTasks.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 mx-auto mb-4 bg-surface-200 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-zinc-500">Нет новых задач — всё сделано! 🎉</p>
+              <p className="text-gray-600">Нет новых задач — всё сделано! 🎉</p>
             </div>
           ) : (
             <ul className="space-y-2">
@@ -237,16 +237,16 @@ export default async function DashboardPage() {
                 <li key={task.id}>
                   <Link
                     href={`/projects/${task.project.id}`}
-                    className="block p-3 rounded-lg hover:bg-white/5 transition-colors group"
+                    className="block p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
                     <div className="flex items-start gap-3">
                       <div className={`w-2 h-2 rounded-full mt-2 ${statusColors[task.status]}`} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-zinc-200 truncate group-hover:text-white transition-colors">
+                        <p className="font-medium text-gray-900 truncate group-hover:text-white transition-colors">
                           {task.title}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-zinc-500">{task.project.name}</span>
+                          <span className="text-xs text-gray-600">{task.project.name}</span>
                           <span className={`text-xs font-medium ${priorityColors[task.priority]}`}>
                             {task.priority === 'urgent' && '🔴'}
                             {task.priority === 'high' && '🟠'}
@@ -256,12 +256,12 @@ export default async function DashboardPage() {
                           {!task.assignee && (
                             <span className="text-xs text-amber-500">• Не назначена</span>
                           )}
-                          <span className="text-xs text-zinc-600">
+                          <span className="text-xs text-gray-500">
                             {formatDistanceToNow(new Date(task.createdAt), { addSuffix: true, locale: ru })}
                           </span>
                         </div>
                       </div>
-                      <svg className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-600 transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>

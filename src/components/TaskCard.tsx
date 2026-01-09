@@ -131,8 +131,8 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
         {...attributes}
         {...listeners}
         className={clsx(
-          'group bg-surface-100 border border-white/5 rounded-lg p-4 cursor-grab active:cursor-grabbing',
-          'hover:border-white/10 transition-all duration-200',
+          'group bg-white border border-gray-200 rounded-lg p-4 cursor-grab active:cursor-grabbing',
+          'hover:border-gray-300 transition-all duration-200',
           (isDragging || isSortableDragging) && 'opacity-50 shadow-xl',
           isOverdue && 'border-priority-urgent/30'
         )}
@@ -154,32 +154,32 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
         </div>
 
         {/* Title */}
-        <h4 className="font-medium text-zinc-100 mb-2 line-clamp-2">{task.title}</h4>
+        <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">{task.title}</h4>
 
         {/* Description preview */}
         {task.description && (
-          <p className="text-sm text-zinc-500 mb-3 line-clamp-2">{task.description}</p>
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{task.description}</p>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
           {/* Assignee */}
           {task.assignee ? (
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white text-xs font-medium">
+              <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-white text-xs font-medium">
                 {task.assignee.name.charAt(0).toUpperCase()}
               </div>
-              <span className="text-xs text-zinc-500">{task.assignee.name}</span>
+              <span className="text-xs text-gray-600">{task.assignee.name}</span>
             </div>
           ) : (
-            <span className="text-xs text-zinc-600">Не назначен</span>
+            <span className="text-xs text-gray-500">Не назначен</span>
           )}
 
           {/* Deadline */}
           {deadline && (
             <span className={clsx(
               'text-xs flex items-center gap-1',
-              isOverdue ? 'text-priority-urgent' : isDueToday ? 'text-priority-medium' : 'text-zinc-500'
+              isOverdue ? 'text-priority-urgent' : isDueToday ? 'text-priority-medium' : 'text-gray-600'
             )}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -198,7 +198,7 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
       >
         <form onSubmit={handleUpdate} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Название
             </label>
             <input
@@ -211,7 +211,7 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Описание
             </label>
             <textarea
@@ -224,7 +224,7 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Приоритет
               </label>
               <select
@@ -240,7 +240,7 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Дедлайн
               </label>
               <input
@@ -253,7 +253,7 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Исполнитель
             </label>
             <select
@@ -299,4 +299,5 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
     </>
   )
 }
+
 

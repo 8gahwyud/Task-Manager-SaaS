@@ -107,7 +107,7 @@ export function AnalyticsCharts({
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-xs text-zinc-400">{item.name}</span>
+                <span className="text-xs text-gray-600">{item.name}</span>
               </div>
             ))}
           </div>
@@ -152,7 +152,7 @@ export function AnalyticsCharts({
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-xs text-zinc-400">{item.name}</span>
+                <span className="text-xs text-gray-600">{item.name}</span>
               </div>
             ))}
           </div>
@@ -195,4 +195,5 @@ export function AnalyticsCharts({
     </div>
   )
 }
+
 

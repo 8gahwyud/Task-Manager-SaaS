@@ -18,7 +18,7 @@ export default async function HomePage() {
           {/* Logo */}
           <div className="mb-8 animate-fade-in">
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full glass">
-              <div className="w-8 h-8 bg-gradient-to-br from-accent to-purple-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
                 <svg
                   className="w-5 h-5 text-white"
                   fill="none"
@@ -33,23 +33,23 @@ export default async function HomePage() {
                   />
                 </svg>
               </div>
-              <span className="text-zinc-400 text-sm font-medium">TaskFlow</span>
+              <span className="text-gray-600 text-sm font-medium">TaskFlow</span>
             </div>
           </div>
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slide-up">
-            <span className="bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-400 bg-clip-text text-transparent">
+            <span className="text-gray-900">
               Управляй задачами
             </span>
             <br />
-            <span className="bg-gradient-to-r from-accent via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="text-accent">
               без хаоса
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
             Минималистичный task-менеджер для команд, которые ценят простоту и скорость.
             Kanban-доски, дедлайны, приоритеты — всё в одном месте.
           </p>
@@ -109,12 +109,12 @@ export default async function HomePage() {
                 description: 'Отслеживайте прогресс и выявляйте узкие места',
               },
             ].map((feature, i) => (
-              <div key={i} className="card p-6 text-left hover:border-white/10 transition-all duration-300">
-                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center text-accent mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-zinc-100 mb-2">{feature.title}</h3>
-                <p className="text-zinc-500">{feature.description}</p>
+              <div key={i} className="card p-6 text-left hover:border-gray-300 transition-all duration-300">
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center text-accent mb-4">
+                {feature.icon}
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -122,12 +122,13 @@ export default async function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-white/5">
-        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 text-sm">
+      <footer className="py-8 border-t border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 text-center text-gray-500 text-sm">
           TaskFlow MVP — создано за выходные ✨
         </div>
       </footer>
     </div>
   )
 }
+
 

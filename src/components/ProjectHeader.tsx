@@ -58,21 +58,21 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
 
   return (
     <>
-      <header className="px-8 py-6 border-b border-white/5">
+      <header className="px-8 py-6 border-b border-gray-200">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/projects"
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
             <div>
               <h1 className="text-2xl font-bold">{project.name}</h1>
               {project.description && (
-                <p className="text-zinc-500 mt-1">{project.description}</p>
+                <p className="text-gray-600 mt-1">{project.description}</p>
               )}
             </div>
           </div>
@@ -83,14 +83,14 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
               {members.slice(0, 4).map((member) => (
                 <div
                   key={member.id}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white text-sm font-medium border-2 border-surface-100"
+                  className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-sm font-medium border-2 border-white"
                   title={member.name}
                 >
                   {member.name.charAt(0).toUpperCase()}
                 </div>
               ))}
               {members.length > 4 && (
-                <div className="w-9 h-9 rounded-full bg-surface-300 flex items-center justify-center text-zinc-400 text-sm font-medium border-2 border-surface-100">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-sm font-medium border-2 border-white">
                   +{members.length - 4}
                 </div>
               )}
@@ -119,7 +119,7 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
       >
         <form onSubmit={handleInvite} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email участника
             </label>
             <input
@@ -131,7 +131,7 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
             />
-            <p className="text-xs text-zinc-500 mt-2">
+            <p className="text-xs text-gray-600 mt-2">
               Если пользователь зарегистрирован, он сразу получит доступ к проекту
             </p>
           </div>
@@ -157,4 +157,5 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
     </>
   )
 }
+
 

@@ -75,7 +75,7 @@ export default async function AnalyticsPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Аналитика</h1>
-        <p className="text-zinc-500">
+        <p className="text-gray-600">
           Статистика по вашим проектам и задачам
         </p>
       </div>
@@ -130,7 +130,7 @@ export default async function AnalyticsPage() {
         ].map((stat, i) => (
           <div key={i} className="card p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-zinc-500 text-sm">{stat.label}</span>
+              <span className="text-gray-600 text-sm">{stat.label}</span>
               <div className={`${stat.bg} ${stat.color} p-2 rounded-lg`}>
                 {stat.icon}
               </div>
@@ -157,10 +157,10 @@ export default async function AnalyticsPage() {
               return (
                 <div key={status}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-zinc-300">{statusLabels[status] || status}</span>
-                    <span className="text-sm text-zinc-500">{count} ({percentage.toFixed(0)}%)</span>
+                    <span className="text-sm text-gray-700">{statusLabels[status] || status}</span>
+                    <span className="text-sm text-gray-600">{count} ({percentage.toFixed(0)}%)</span>
                   </div>
-                  <div className="h-2 bg-surface-300 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${colors[status] || 'bg-accent'}`}
                       style={{ width: `${percentage}%` }}
@@ -170,7 +170,7 @@ export default async function AnalyticsPage() {
               )
             })}
             {Object.keys(statsByStatus).length === 0 && (
-              <p className="text-zinc-500 text-center py-4">Нет данных</p>
+              <p className="text-gray-600 text-center py-4">Нет данных</p>
             )}
           </div>
         </div>
@@ -190,10 +190,10 @@ export default async function AnalyticsPage() {
               return (
                 <div key={priority}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-zinc-300">{priorityLabels[priority] || priority}</span>
-                    <span className="text-sm text-zinc-500">{count} ({percentage.toFixed(0)}%)</span>
+                    <span className="text-sm text-gray-700">{priorityLabels[priority] || priority}</span>
+                    <span className="text-sm text-gray-600">{count} ({percentage.toFixed(0)}%)</span>
                   </div>
-                  <div className="h-2 bg-surface-300 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${colors[priority] || 'bg-accent'}`}
                       style={{ width: `${percentage}%` }}
@@ -203,7 +203,7 @@ export default async function AnalyticsPage() {
               )
             })}
             {Object.keys(statsByPriority).length === 0 && (
-              <p className="text-zinc-500 text-center py-4">Нет данных</p>
+              <p className="text-gray-600 text-center py-4">Нет данных</p>
             )}
           </div>
         </div>
@@ -234,8 +234,8 @@ export default async function AnalyticsPage() {
                 className="flex items-center justify-between p-3 rounded-lg bg-priority-urgent/5 border border-priority-urgent/20"
               >
                 <div>
-                  <p className="font-medium text-zinc-200">{task.title}</p>
-                  <p className="text-sm text-zinc-500">
+                  <p className="font-medium text-gray-900">{task.title}</p>
+                  <p className="text-sm text-gray-600">
                     {task.project.name}
                     {task.assignee && ` • ${task.assignee.name}`}
                   </p>
@@ -246,7 +246,7 @@ export default async function AnalyticsPage() {
               </div>
             ))}
             {overdueTasks.length > 5 && (
-              <p className="text-sm text-zinc-500 text-center">
+              <p className="text-sm text-gray-600 text-center">
                 И ещё {overdueTasks.length - 5} задач...
               </p>
             )}
@@ -256,4 +256,5 @@ export default async function AnalyticsPage() {
     </div>
   )
 }
+
 
