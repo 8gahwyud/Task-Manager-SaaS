@@ -21,10 +21,10 @@ interface AnalyticsChartsProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: '#6b7280',
-  in_progress: '#3b82f6',
-  review: '#a855f7',
-  done: '#10b981',
+  todo: '#8993a4',
+  in_progress: '#0052cc',
+  review: '#8777d9',
+  done: '#36b37e',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -44,13 +44,13 @@ export function AnalyticsCharts({
   const statusData = Object.entries(statsByStatus).map(([status, count]) => ({
     name: statusLabels[status] || status,
     value: count,
-    color: STATUS_COLORS[status] || '#6366f1',
+    color: STATUS_COLORS[status] || '#0052cc',
   }))
 
   const priorityData = Object.entries(statsByPriority).map(([priority, count]) => ({
     name: priorityLabels[priority] || priority,
     value: count,
-    color: PRIORITY_COLORS[priority] || '#6366f1',
+    color: PRIORITY_COLORS[priority] || '#0052cc',
   }))
 
   const projectData = Object.entries(statsByProject)
