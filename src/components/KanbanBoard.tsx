@@ -466,12 +466,19 @@ export function KanbanBoard({
       ref={boardContainerRef}
       id={`board-${boardId}`}
       data-board-container
-      className="h-full w-full overflow-hidden relative isolate" 
-      style={{ ...boardStyle, contain: 'layout style' }}
+      className="h-full w-full overflow-hidden relative" 
+      style={boardStyle}
     >
       <div className="h-full w-full overflow-x-auto overflow-y-hidden">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
-        {/* DndContext ВРЕМЕННО ОТКЛЮЧЁН для диагностики */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          autoScroll={false}
+        >
           <SortableContext
             items={columns.map((c) => c.id)}
             strategy={horizontalListSortingStrategy}
@@ -542,7 +549,29 @@ export function KanbanBoard({
             )}
           </SortableContext>
 
-          {/* DragOverlay и DndContext закрывающий тег убраны для диагностики */}
+          <DragOverlay zIndex={50} dropAnimation={null}>
+            {activeTask && (
+              <TaskCard
+                task={activeTask}
+                members={members}
+                onUpdate={handleTaskUpdated}
+                onDelete={handleTaskDeleted}
+                isDragging
+              />
+            )}
+            {activeColumn && (
+              <div className="w-80 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: activeColumn.color }}
+                  />
+                  <h3 className="font-semibold text-gray-900">{activeColumn.name}</h3>
+                </div>
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
         </div>
       </div>
 
