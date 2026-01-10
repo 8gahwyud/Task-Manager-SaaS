@@ -6,42 +6,13 @@ import {
   DragOverlay,
   closestCorners,
   KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
+  PointerSensor,
   useSensor,
   useSensors,
   DragStartEvent,
   DragEndEvent,
   DragOverEvent,
-  PointerSensor,
 } from '@dnd-kit/core'
-
-// Кастомный сенсор, который активируется ТОЛЬКО внутри доски
-class RestrictedMouseSensor extends MouseSensor {
-  static activators = [
-    {
-      eventName: 'onMouseDown' as const,
-      handler: ({ nativeEvent: event }: { nativeEvent: MouseEvent }) => {
-        const target = event.target as HTMLElement
-        
-        // Проверяем, что клик внутри board-container
-        const board = target.closest('[data-board-container]')
-        if (!board) {
-          // Клик вне доски - НЕ активируем drag, НЕ блокируем событие
-          return false
-        }
-        
-        // НЕ активируем для интерактивных элементов
-        if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('textarea')) {
-          return false
-        }
-        
-        // Активируем drag только для draggable элементов
-        return true
-      },
-    },
-  ]
-}
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -117,17 +88,10 @@ export function KanbanBoard({
     color: '#8993a4',
   })
 
-  // Кастомный сенсор, который активируется ТОЛЬКО внутри доски
   const sensors = useSensors(
-    useSensor(RestrictedMouseSensor, {
+    useSensor(PointerSensor, {
       activationConstraint: {
         distance: 5,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor)
@@ -549,7 +513,7 @@ export function KanbanBoard({
             )}
           </SortableContext>
 
-          <DragOverlay zIndex={50} dropAnimation={null}>
+          <DragOverlay>
             {activeTask && (
               <TaskCard
                 task={activeTask}
