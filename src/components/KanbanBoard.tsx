@@ -441,6 +441,12 @@ export function KanbanBoard({
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           autoScroll={false}
+          onCancel={() => {
+            // Отменяем drag если он начался вне доски
+            setActiveTask(null)
+            setActiveColumn(null)
+            setIsDraggingColumn(false)
+          }}
         >
           <SortableContext
             items={columns.map((c) => c.id)}

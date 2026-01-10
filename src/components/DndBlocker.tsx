@@ -5,50 +5,55 @@ import { useEffect } from 'react'
 export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) {
   useEffect(() => {
     // Блокируем события от DndContext для элементов вне доски
-    // Используем самую раннюю фазу capture и останавливаем полностью
+    // Регистрируем в самую раннюю фазу capture ДО того, как DndContext зарегистрирует свои обработчики
+    
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Если клик в сайдбаре, header или любом элементе с data-no-dnd-block
-      const isOutside = target.closest('aside') || 
-                       target.closest('header') || 
-                       target.closest('[data-no-dnd-block]') ||
-                       target.closest('nav')
+      // Проверяем, клик ли это в сайдбаре, header или элементе с data-no-dnd-block
+      const sidebar = target.closest('aside')
+      const header = target.closest('header')
+      const noDnd = target.closest('[data-no-dnd-block]')
+      const nav = target.closest('nav')
       
-      if (isOutside) {
-        // Останавливаем только для DndContext, но не блокируем клики
+      if (sidebar || header || noDnd || nav) {
+        // КРИТИЧНО: останавливаем ДО того, как событие дойдет до DndContext
         e.stopImmediatePropagation()
-        // НЕ используем preventDefault, чтобы клики работали
+        // НЕ используем preventDefault - это блокирует клики
       }
     }
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      const isOutside = target.closest('aside') || 
-                       target.closest('header') || 
-                       target.closest('[data-no-dnd-block]') ||
-                       target.closest('nav')
+      const sidebar = target.closest('aside')
+      const header = target.closest('header')
+      const noDnd = target.closest('[data-no-dnd-block]')
+      const nav = target.closest('nav')
       
-      if (isOutside) {
+      if (sidebar || header || noDnd || nav) {
         e.stopImmediatePropagation()
-        // НЕ используем preventDefault, чтобы клики работали
       }
     }
 
-    // Используем capture phase с самым высоким приоритетом
-    // true означает capture phase, и мы останавливаем событие до того, как оно дойдет до DndContext
-    // passive: false чтобы можно было использовать stopImmediatePropagation
-    const options = { capture: true, passive: false } as AddEventListenerOptions
+    // КРИТИЧНО: используем capture: true и регистрируем как можно раньше
+    // Это гарантирует, что наши обработчики будут вызваны ДО обработчиков DndContext
+    const options: AddEventListenerOptions = { 
+      capture: true, 
+      passive: false 
+    }
     
+    // Регистрируем все типы событий, которые может использовать DndContext
     document.addEventListener('pointerdown', handlePointerDown, options)
     document.addEventListener('mousedown', handleMouseDown, options)
     document.addEventListener('touchstart', handlePointerDown as any, options)
+    document.addEventListener('click', handleMouseDown as any, options)
     
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, options)
       document.removeEventListener('mousedown', handleMouseDown, options)
       document.removeEventListener('touchstart', handlePointerDown as any, options)
+      document.removeEventListener('click', handleMouseDown as any, options)
     }
   }, [boardContainerId])
 
