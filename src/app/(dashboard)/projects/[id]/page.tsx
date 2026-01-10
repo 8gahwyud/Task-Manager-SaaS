@@ -6,7 +6,7 @@ import { KanbanBoard } from '@/components/KanbanBoard'
 import { ProjectHeader } from '@/components/ProjectHeader'
 import { BoardSelector } from '@/components/BoardSelector'
 import { BoardSwitcher } from '@/components/BoardSwitcher'
-import { Suspense } from 'react'
+import { BoardLoadingProvider } from '@/contexts/BoardLoadingContext'
 
 interface Props {
   params: { id: string }
@@ -89,39 +89,41 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <div className="flex-shrink-0 bg-white border-b border-gray-200">
-        <ProjectHeader
-          project={{
-            id: project.id,
-            name: project.name,
-            description: project.description,
-          }}
-          members={members}
-          isOwner={isOwner}
-        />
-        <BoardSelector
-          projectId={project.id}
-          boards={project.boards}
-          currentBoardId={board.id}
-          isOwner={isOwner}
-        />
-      </div>
-      <div className="flex-1 min-h-0 overflow-hidden relative">
-        <BoardSwitcher>
-          <KanbanBoard
-            boardId={board.id}
-            projectId={project.id}
-            initialTasks={board.tasks}
-            initialColumns={board.columns}
+    <BoardLoadingProvider>
+      <div className="h-screen flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-hidden">
+          <ProjectHeader
+            project={{
+              id: project.id,
+              name: project.name,
+              description: project.description,
+            }}
             members={members}
-            backgroundImage={board.backgroundImage}
-            backgroundColor={board.backgroundColor}
             isOwner={isOwner}
           />
-        </BoardSwitcher>
+          <BoardSelector
+            projectId={project.id}
+            boards={project.boards}
+            currentBoardId={board.id}
+            isOwner={isOwner}
+          />
+        </div>
+        <div className="flex-1 min-h-0 overflow-hidden relative">
+          <BoardSwitcher>
+            <KanbanBoard
+              boardId={board.id}
+              projectId={project.id}
+              initialTasks={board.tasks}
+              initialColumns={board.columns}
+              members={members}
+              backgroundImage={board.backgroundImage}
+              backgroundColor={board.backgroundColor}
+              isOwner={isOwner}
+            />
+          </BoardSwitcher>
+        </div>
       </div>
-    </div>
+    </BoardLoadingProvider>
   )
 }
 

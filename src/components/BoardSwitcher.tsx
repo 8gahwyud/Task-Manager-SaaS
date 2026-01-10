@@ -3,26 +3,29 @@
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { BoardLoader } from './BoardLoader'
+import { useBoardLoading } from '@/contexts/BoardLoadingContext'
 
 export function BoardSwitcher({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams()
-  const [isLoading, setIsLoading] = useState(false)
+  const { isLoading, setLoading } = useBoardLoading()
   const currentBoardIdRef = useRef<string | null>(null)
   const boardId = searchParams?.get('board')
 
   useEffect(() => {
     if (boardId && boardId !== currentBoardIdRef.current) {
-      setIsLoading(true)
       currentBoardIdRef.current = boardId
       
-      // Убираем лоадер после небольшой задержки (когда компонент обновится)
+      // Убираем лоадер когда компонент загрузился
       const timer = setTimeout(() => {
-        setIsLoading(false)
-      }, 200)
+        setLoading(false)
+      }, 100)
       
       return () => clearTimeout(timer)
+    } else if (!boardId) {
+      currentBoardIdRef.current = null
+      setLoading(false)
     }
-  }, [boardId])
+  }, [boardId, setLoading])
 
   if (isLoading) {
     return <BoardLoader />

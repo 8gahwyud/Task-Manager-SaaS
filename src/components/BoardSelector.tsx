@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, startTransition } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Modal } from './Modal'
+import { useBoardLoading } from '@/contexts/BoardLoadingContext'
 
 interface Board {
   id: string
@@ -27,10 +28,9 @@ export function BoardSelector({
   isOwner,
 }: BoardSelectorProps) {
   const router = useRouter()
-  const pathname = usePathname()
+  const { setLoading } = useBoardLoading()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isNavigating, setIsNavigating] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -69,14 +69,15 @@ export function BoardSelector({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-8 py-3 bg-gray-50 border-b border-gray-200">
-        <span className="text-sm text-gray-600">Доски:</span>
-        <div className="flex items-center gap-1 flex-1 overflow-x-auto">
+      <div className="flex items-center gap-2 px-8 py-3 bg-gray-50 border-b border-gray-200 overflow-hidden">
+        <span className="text-sm text-gray-600 flex-shrink-0">Доски:</span>
+        <div className="flex items-center gap-1 flex-1 overflow-x-auto overflow-y-hidden min-w-0">
           {boards.map((board) => (
             <button
               key={board.id}
               onClick={() => {
                 if (board.id === currentBoardId) return
+                setLoading(true)
                 router.push(`/projects/${projectId}?board=${board.id}`)
                 router.refresh()
               }}
