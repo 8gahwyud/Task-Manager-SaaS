@@ -76,6 +76,7 @@ export async function POST(request: Request) {
       data: {
         title: data.title,
         description: data.description,
+        projectId: board.project.id,
         boardId: data.boardId,
         columnId: data.columnId,
         assigneeId: data.assigneeId || null,
