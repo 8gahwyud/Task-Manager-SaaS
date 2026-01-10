@@ -69,9 +69,9 @@ export function BoardSelector({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-8 py-3 bg-gray-50 border-b border-gray-200 overflow-hidden">
+      <div className="flex items-center gap-2 px-8 py-3 bg-gray-50 border-b border-gray-200 overflow-hidden w-full max-w-full">
         <span className="text-sm text-gray-600 flex-shrink-0">Доски:</span>
-        <div className="flex items-center gap-1 flex-1 overflow-x-auto overflow-y-hidden min-w-0">
+        <div className="flex items-center gap-1 flex-1 overflow-x-auto overflow-y-hidden min-w-0 max-w-full">
           {boards.map((board) => (
             <button
               key={board.id}

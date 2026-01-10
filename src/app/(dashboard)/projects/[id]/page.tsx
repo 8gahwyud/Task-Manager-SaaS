@@ -90,8 +90,8 @@ export default async function ProjectPage({ params, searchParams }: Props) {
 
   return (
     <BoardLoadingProvider>
-      <div className="h-screen flex flex-col overflow-hidden">
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-hidden">
+      <div className="h-screen flex flex-col overflow-hidden w-full max-w-full">
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-hidden w-full max-w-full">
           <ProjectHeader
             project={{
               id: project.id,
@@ -108,7 +108,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             isOwner={isOwner}
           />
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden relative w-full">
+        <div className="flex-1 min-h-0 overflow-hidden relative w-full max-w-full">
           <BoardSwitcher>
             <KanbanBoard
               boardId={board.id}
