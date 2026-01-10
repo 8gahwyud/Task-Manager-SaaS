@@ -37,8 +37,8 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
     name: project.name,
     description: project.description || '',
     backgroundColor: project.backgroundColor || '',
-    backgroundImage: project.backgroundImage || '',
   })
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false)
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +52,6 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
           name: formData.name,
           description: formData.description.trim() || null,
           backgroundColor: formData.backgroundColor.trim() || null,
-          backgroundImage: formData.backgroundImage.trim() || null,
         }),
       })
 
@@ -95,6 +94,48 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
       toast.error(error instanceof Error ? error.message : 'Ошибка')
     } finally {
       setIsInviting(false)
+    }
+  }
+
+  const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Проверяем тип файла
+    if (!file.type.startsWith('image/')) {
+      toast.error('Файл должен быть изображением')
+      return
+    }
+
+    // Проверяем размер (макс 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Размер файла не должен превышать 5MB')
+      return
+    }
+
+    setIsUploadingBackground(true)
+
+    try {
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
+
+      const res = await fetch(`/api/projects/${project.id}/upload-background`, {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Ошибка при загрузке')
+      }
+
+      toast.success('Фон обновлён')
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка')
+    } finally {
+      setIsUploadingBackground(false)
+      e.target.value = ''
     }
   }
 
@@ -169,7 +210,7 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Цвет фона
@@ -184,15 +225,35 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Изображение фона (URL)
+                Изображение фона
               </label>
-              <input
-                type="url"
-                className="input-field"
-                placeholder="https://example.com/bg.jpg"
-                value={formData.backgroundImage}
-                onChange={(e) => setFormData({ ...formData, backgroundImage: e.target.value })}
-              />
+              <label className="relative inline-flex items-center justify-center px-4 py-2.5 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 hover:border-accent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBackgroundUpload}
+                  disabled={isUploadingBackground}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-2">
+                  {isUploadingBackground ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm font-medium text-gray-700">Загрузка...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <span className="text-sm font-medium text-gray-700">Выбрать файл</span>
+                    </>
+                  )}
+                </div>
+              </label>
+              <p className="text-xs text-gray-500 mt-2">
+                Поддерживаются форматы: JPG, PNG, GIF (макс. 5MB)
+              </p>
             </div>
           </div>
 
