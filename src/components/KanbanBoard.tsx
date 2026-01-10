@@ -13,7 +13,35 @@ import {
   DragStartEvent,
   DragEndEvent,
   DragOverEvent,
+  PointerSensor,
 } from '@dnd-kit/core'
+
+// Кастомный сенсор, который активируется ТОЛЬКО внутри доски
+class RestrictedMouseSensor extends MouseSensor {
+  static activators = [
+    {
+      eventName: 'onMouseDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: MouseEvent }) => {
+        const target = event.target as HTMLElement
+        
+        // Проверяем, что клик внутри board-container
+        const board = target.closest('[data-board-container]')
+        if (!board) {
+          // Клик вне доски - НЕ активируем drag, НЕ блокируем событие
+          return false
+        }
+        
+        // НЕ активируем для интерактивных элементов
+        if (target.closest('button') || target.closest('input') || target.closest('select') || target.closest('textarea')) {
+          return false
+        }
+        
+        // Активируем drag только для draggable элементов
+        return true
+      },
+    },
+  ]
+}
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -89,9 +117,9 @@ export function KanbanBoard({
     color: '#8993a4',
   })
 
-  // Используем MouseSensor вместо PointerSensor - он не блокирует клики
+  // Кастомный сенсор, который активируется ТОЛЬКО внутри доски
   const sensors = useSensors(
-    useSensor(MouseSensor, {
+    useSensor(RestrictedMouseSensor, {
       activationConstraint: {
         distance: 5,
       },
