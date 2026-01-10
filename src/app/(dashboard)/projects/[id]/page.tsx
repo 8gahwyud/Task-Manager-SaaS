@@ -110,8 +110,9 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             isOwner={isOwner}
           />
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden relative w-full">
+        <div className="flex-1 min-h-0 overflow-hidden relative w-full pointer-events-none">
           <BoardSwitcher>
+            <div className="h-full w-full pointer-events-auto">
             <KanbanBoard
               boardId={board.id}
               projectId={project.id}
@@ -122,6 +123,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
               backgroundColor={board.backgroundColor || project.backgroundColor}
               isOwner={isOwner}
             />
+            </div>
           </BoardSwitcher>
         </div>
       </div>

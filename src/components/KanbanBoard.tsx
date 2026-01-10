@@ -398,7 +398,7 @@ export function KanbanBoard({
 
   return (
     <div className="h-full w-full overflow-hidden relative" style={boardStyle}>
-      <div className="h-full w-full overflow-x-auto overflow-y-hidden">
+      <div className="h-full w-full overflow-x-auto overflow-y-hidden pointer-events-auto">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
         <DndContext
           sensors={sensors}
@@ -406,7 +406,6 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
-          modifiers={[]}
         >
           <SortableContext
             items={columns.map((c) => c.id)}
