@@ -22,7 +22,6 @@ export default function ProfilePage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    avatarUrl: '',
   })
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [passwordData, setPasswordData] = useState({
@@ -43,7 +42,6 @@ export default function ProfilePage() {
       setUser(data)
       setFormData({
         name: data.name,
-        avatarUrl: data.avatarUrl || '',
       })
     } catch {
       toast.error('Ошибка при загрузке профиля')
@@ -62,7 +60,6 @@ export default function ProfilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          avatarUrl: formData.avatarUrl || null,
         }),
       })
 
@@ -126,7 +123,6 @@ export default function ProfilePage() {
 
       const updated = await res.json()
       setUser(updated)
-      setFormData({ ...formData, avatarUrl: updated.avatarUrl || '' })
 
       // Обновляем сессию
       await update({
@@ -210,7 +206,7 @@ export default function ProfilePage() {
         <h2 className="text-lg font-semibold mb-4">Аватар</h2>
         <div className="flex items-center gap-6">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-semibold overflow-hidden">
+            <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-semibold overflow-hidden ring-2 ring-gray-200">
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -225,41 +221,42 @@ export default function ProfilePage() {
               )}
             </div>
             {isUploadingAvatar && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full ring-2 ring-gray-200">
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
               </div>
             )}
           </div>
-          <div className="flex-1 space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Загрузить изображение
-              </label>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Загрузить изображение
+            </label>
+            <label className="relative inline-flex items-center justify-center px-4 py-2.5 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 hover:border-accent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarUpload}
                 disabled={isUploadingAvatar}
-                className="input-field cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hidden"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Поддерживаются форматы: JPG, PNG, GIF (макс. 5MB)
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Или вставьте URL изображения
-              </label>
-              <input
-                type="url"
-                className="input-field"
-                placeholder="https://example.com/avatar.jpg"
-                value={formData.avatarUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, avatarUrl: e.target.value })
-                }
-              />
-            </div>
+              <div className="flex items-center gap-2">
+                {isUploadingAvatar ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm font-medium text-gray-700">Загрузка...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-700">Выбрать файл</span>
+                  </>
+                )}
+              </div>
+            </label>
+            <p className="text-xs text-gray-500 mt-2">
+              Поддерживаются форматы: JPG, PNG, GIF (макс. 5MB)
+            </p>
           </div>
         </div>
       </div>
