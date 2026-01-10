@@ -128,22 +128,24 @@ export function KanbanBoard({
     if (activeColumnDrag) {
       const overColumn = columns.find((c) => c.id === overId)
       if (overColumn && activeColumnDrag.id !== overColumn.id) {
-        // Обновляем порядок столбцов (сортируем по position сначала)
-        const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
-        const activeIndex = sortedColumns.findIndex((c) => c.id === activeId)
-        const overIndex = sortedColumns.findIndex((c) => c.id === overId)
-        
-        if (activeIndex !== -1 && overIndex !== -1) {
-          const [removed] = sortedColumns.splice(activeIndex, 1)
-          sortedColumns.splice(overIndex, 0, removed)
+        // Получаем текущий отсортированный порядок столбцов
+        setColumns((prev) => {
+          const sorted = [...prev].sort((a, b) => a.position - b.position)
+          const activeIdx = sorted.findIndex((c) => c.id === activeId)
+          const overIdx = sorted.findIndex((c) => c.id === overId)
           
-          // Обновляем позиции (оптимистично)
-          const updatedColumns = sortedColumns.map((col, index) => ({
-            ...col,
-            position: index,
-          }))
-          setColumns(updatedColumns)
-        }
+          if (activeIdx !== -1 && overIdx !== -1) {
+            const [removed] = sorted.splice(activeIdx, 1)
+            sorted.splice(overIdx, 0, removed)
+            
+            // Обновляем позиции
+            return sorted.map((col, index) => ({
+              ...col,
+              position: index,
+            }))
+          }
+          return prev
+        })
       }
       return
     }
