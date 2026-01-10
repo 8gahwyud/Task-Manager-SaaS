@@ -31,9 +31,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 relative">
+    <div className="flex min-h-screen bg-gray-50 overflow-hidden">
       <Sidebar user={user} />
-      <main className="flex-1 ml-64 bg-gray-50 overflow-x-hidden min-w-0 relative z-0">
+      <main className="flex-1 ml-64 bg-gray-50 overflow-x-hidden min-w-0">
         {children}
       </main>
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -75,7 +75,6 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const router = useRouter()
   const { updateTaskCount } = useBoardCount()
-  const boardContainerRef = useRef<HTMLDivElement>(null)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [columns, setColumns] = useState<Column[]>(initialColumns.sort((a, b) => a.position - b.position))
   const [activeTask, setActiveTask] = useState<Task | null>(null)
@@ -108,34 +107,6 @@ export function KanbanBoard({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    
-    // Проверяем, что событие произошло внутри контейнера доски
-    if (boardContainerRef.current && event.activatorEvent) {
-      const activatorEvent = event.activatorEvent as PointerEvent | MouseEvent | TouchEvent
-      let clientX = 0
-      let clientY = 0
-      
-      if ('clientX' in activatorEvent) {
-        clientX = activatorEvent.clientX
-        clientY = activatorEvent.clientY
-      } else if (activatorEvent.touches && activatorEvent.touches.length > 0) {
-        clientX = activatorEvent.touches[0].clientX
-        clientY = activatorEvent.touches[0].clientY
-      }
-      
-      const target = document.elementFromPoint(clientX, clientY) as HTMLElement
-      
-      // Если клик в сайдбаре, header или вне доски - не начинаем drag
-      if (
-        target?.closest('aside') ||
-        target?.closest('header') ||
-        target?.closest('[data-no-dnd-block]') ||
-        !boardContainerRef.current.contains(target)
-      ) {
-        return
-      }
-    }
-    
     // Проверяем, это задача или столбец
     const task = tasks.find((t) => t.id === active.id)
     if (task) {
@@ -426,13 +397,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div
-      ref={boardContainerRef}
-      id={`board-${boardId}`}
-      data-board-container
-      className="h-full w-full overflow-hidden relative" 
-      style={boardStyle}
-    >
+    <div className="h-full w-full overflow-hidden" style={boardStyle}>
       <div className="h-full w-full overflow-x-auto overflow-y-hidden">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
         <DndContext
@@ -441,7 +406,6 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
-          autoScroll={false}
         >
           <SortableContext
             items={columns.map((c) => c.id)}

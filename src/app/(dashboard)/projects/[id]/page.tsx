@@ -8,7 +8,6 @@ import { BoardSelector } from '@/components/BoardSelector'
 import { BoardSwitcher } from '@/components/BoardSwitcher'
 import { BoardLoadingProvider } from '@/contexts/BoardLoadingContext'
 import { BoardCountProvider } from '@/contexts/BoardCountContext'
-// DndBlocker удалён - не нужен
 
 interface Props {
   params: { id: string }
@@ -92,9 +91,9 @@ export default async function ProjectPage({ params, searchParams }: Props) {
 
   return (
     <BoardLoadingProvider>
-        <BoardCountProvider>
-          <div className="flex flex-col overflow-hidden w-full relative" style={{ height: '100vh' }}>
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full relative z-20 pointer-events-auto" data-no-dnd-block>
+      <BoardCountProvider>
+        <div className="h-screen flex flex-col overflow-hidden w-full">
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full">
           <ProjectHeader
             project={{
               id: project.id,
@@ -113,7 +112,6 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         </div>
         <div className="flex-1 min-h-0 overflow-hidden relative w-full">
           <BoardSwitcher>
-            <div className="h-full w-full">
             <KanbanBoard
               boardId={board.id}
               projectId={project.id}
@@ -124,7 +122,6 @@ export default async function ProjectPage({ params, searchParams }: Props) {
               backgroundColor={board.backgroundColor || project.backgroundColor}
               isOwner={isOwner}
             />
-            </div>
           </BoardSwitcher>
         </div>
       </div>
