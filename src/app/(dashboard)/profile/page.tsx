@@ -111,12 +111,12 @@ export default function ProfilePage() {
     setIsUploadingAvatar(true)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', file)
 
       const res = await fetch('/api/user/upload-avatar', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       })
 
       if (!res.ok) {
