@@ -365,11 +365,13 @@ export function KanbanBoard({
 
   // Фон доски
   const boardStyle: React.CSSProperties = {}
-  if (backgroundImage) {
+  if (backgroundImage && backgroundImage.trim() !== '') {
     boardStyle.backgroundImage = `url(${backgroundImage})`
     boardStyle.backgroundSize = 'cover'
     boardStyle.backgroundPosition = 'center'
-  } else if (backgroundColor) {
+    boardStyle.backgroundRepeat = 'no-repeat'
+  }
+  if (backgroundColor && backgroundColor.trim() !== '') {
     boardStyle.backgroundColor = backgroundColor
   }
 

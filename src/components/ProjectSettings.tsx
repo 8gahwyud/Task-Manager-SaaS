@@ -50,9 +50,9 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          description: formData.description || null,
-          backgroundColor: formData.backgroundColor || null,
-          backgroundImage: formData.backgroundImage || null,
+          description: formData.description.trim() || null,
+          backgroundColor: formData.backgroundColor.trim() || null,
+          backgroundImage: formData.backgroundImage.trim() || null,
         }),
       })
 

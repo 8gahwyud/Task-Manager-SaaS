@@ -24,13 +24,13 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         { members: { some: { userId: session!.user.id } } },
       ],
     },
-      include: {
-        owner: { select: { id: true, name: true, email: true, avatarUrl: true } },
-        members: {
-          include: {
-            user: { select: { id: true, name: true, email: true, avatarUrl: true } },
-          },
+    include: {
+      owner: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true, avatarUrl: true } },
         },
+      },
       boards: {
         include: {
           columns: {
@@ -116,8 +116,8 @@ export default async function ProjectPage({ params, searchParams }: Props) {
               initialTasks={board.tasks}
               initialColumns={board.columns}
               members={members}
-              backgroundImage={board.backgroundImage}
-              backgroundColor={board.backgroundColor}
+              backgroundImage={board.backgroundImage || project.backgroundImage}
+              backgroundColor={board.backgroundColor || project.backgroundColor}
               isOwner={isOwner}
             />
           </BoardSwitcher>
