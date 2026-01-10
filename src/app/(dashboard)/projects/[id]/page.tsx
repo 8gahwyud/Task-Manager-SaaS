@@ -7,6 +7,7 @@ import { ProjectHeader } from '@/components/ProjectHeader'
 import { BoardSelector } from '@/components/BoardSelector'
 import { BoardSwitcher } from '@/components/BoardSwitcher'
 import { BoardLoadingProvider } from '@/contexts/BoardLoadingContext'
+import { BoardCountProvider } from '@/contexts/BoardCountContext'
 
 interface Props {
   params: { id: string }
@@ -90,7 +91,8 @@ export default async function ProjectPage({ params, searchParams }: Props) {
 
   return (
     <BoardLoadingProvider>
-      <div className="h-screen flex flex-col overflow-hidden w-full">
+      <BoardCountProvider>
+        <div className="h-screen flex flex-col overflow-hidden w-full">
         <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full">
           <ProjectHeader
             project={{
@@ -123,6 +125,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
           </BoardSwitcher>
         </div>
       </div>
+      </BoardCountProvider>
     </BoardLoadingProvider>
   )
 }

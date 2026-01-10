@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Modal } from './Modal'
 import { useBoardLoading } from '@/contexts/BoardLoadingContext'
+import { useBoardCount } from '@/contexts/BoardCountContext'
 
 interface Board {
   id: string
@@ -29,6 +30,7 @@ export function BoardSelector({
 }: BoardSelectorProps) {
   const router = useRouter()
   const { setLoading } = useBoardLoading()
+  const { taskCounts } = useBoardCount()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -88,11 +90,9 @@ export function BoardSelector({
               }`}
             >
               {board.name}
-              {board._count && (
-                <span className="ml-2 text-xs opacity-75">
-                  {board._count.tasks}
-                </span>
-              )}
+              <span className="ml-2 text-xs opacity-75">
+                {taskCounts[board.id] !== undefined ? taskCounts[board.id] : (board._count?.tasks || 0)}
+              </span>
             </button>
           ))}
           {isOwner && (

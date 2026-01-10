@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,8 @@ import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { CreateTaskButton } from './CreateTaskButton'
 import { Modal } from './Modal'
+import { useBoardCount } from '@/contexts/BoardCountContext'
+import { useRouter } from 'next/navigation'
 
 interface Member {
   id: string
@@ -71,6 +73,8 @@ export function KanbanBoard({
   backgroundColor,
   isOwner = false,
 }: KanbanBoardProps) {
+  const router = useRouter()
+  const { updateTaskCount } = useBoardCount()
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [columns, setColumns] = useState<Column[]>(initialColumns.sort((a, b) => a.position - b.position))
   const [activeTask, setActiveTask] = useState<Task | null>(null)
@@ -322,7 +326,13 @@ export function KanbanBoard({
   }
 
   const handleTaskCreated = (newTask: Task) => {
-    setTasks((prev) => [...prev, newTask])
+    setTasks((prev) => {
+      const newTasks = [...prev, newTask]
+      updateTaskCount(boardId, newTasks.length)
+      // Обновляем страницу для синхронизации с сервером
+      setTimeout(() => router.refresh(), 100)
+      return newTasks
+    })
   }
 
   const handleTaskUpdated = (updatedTask: Task) => {
@@ -332,8 +342,19 @@ export function KanbanBoard({
   }
 
   const handleTaskDeleted = (taskId: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId))
+    setTasks((prev) => {
+      const newTasks = prev.filter((t) => t.id !== taskId)
+      updateTaskCount(boardId, newTasks.length)
+      return newTasks
+    })
+    // Обновляем страницу для синхронизации с сервером
+    setTimeout(() => router.refresh(), 200)
   }
+
+  // Обновляем счетчик при изменении задач
+  useEffect(() => {
+    updateTaskCount(boardId, tasks.length)
+  }, [tasks.length, boardId, updateTaskCount])
 
   const handleCreateColumn = async (e: React.FormEvent) => {
     e.preventDefault()
