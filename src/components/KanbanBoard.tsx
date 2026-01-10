@@ -71,9 +71,10 @@ export function KanbanBoard({
   isOwner = false,
 }: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
-  const [columns, setColumns] = useState<Column[]>(initialColumns)
+  const [columns, setColumns] = useState<Column[]>(initialColumns.sort((a, b) => a.position - b.position))
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [activeColumn, setActiveColumn] = useState<Column | null>(null)
+  const [isDraggingColumn, setIsDraggingColumn] = useState(false)
   const [showCreateColumnModal, setShowCreateColumnModal] = useState(false)
   const [isCreatingColumn, setIsCreatingColumn] = useState(false)
   const [columnFormData, setColumnFormData] = useState({
@@ -111,6 +112,7 @@ export function KanbanBoard({
     const column = columns.find((c) => c.id === active.id)
     if (column) {
       setActiveColumn(column)
+      setIsDraggingColumn(true)
     }
   }
 
@@ -126,17 +128,17 @@ export function KanbanBoard({
     if (activeColumnDrag) {
       const overColumn = columns.find((c) => c.id === overId)
       if (overColumn && activeColumnDrag.id !== overColumn.id) {
-        // Обновляем порядок столбцов
-        const newColumns = [...columns]
-        const activeIndex = newColumns.findIndex((c) => c.id === activeId)
-        const overIndex = newColumns.findIndex((c) => c.id === overId)
+        // Обновляем порядок столбцов (сортируем по position сначала)
+        const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
+        const activeIndex = sortedColumns.findIndex((c) => c.id === activeId)
+        const overIndex = sortedColumns.findIndex((c) => c.id === overId)
         
         if (activeIndex !== -1 && overIndex !== -1) {
-          const [removed] = newColumns.splice(activeIndex, 1)
-          newColumns.splice(overIndex, 0, removed)
+          const [removed] = sortedColumns.splice(activeIndex, 1)
+          sortedColumns.splice(overIndex, 0, removed)
           
-          // Обновляем позиции
-          const updatedColumns = newColumns.map((col, index) => ({
+          // Обновляем позиции (оптимистично)
+          const updatedColumns = sortedColumns.map((col, index) => ({
             ...col,
             position: index,
           }))
@@ -176,11 +178,14 @@ export function KanbanBoard({
     const { active, over } = event
     setActiveTask(null)
     setActiveColumn(null)
+    
+    const wasDraggingColumn = isDraggingColumn
+    setIsDraggingColumn(false)
 
     if (!over) {
       // Если упали не на цель - откатываем изменения
-      if (columns.find((c) => c.id === active.id)) {
-        setColumns(initialColumns)
+      if (wasDraggingColumn) {
+        setColumns(initialColumns.sort((a, b) => a.position - b.position))
       } else {
         setTasks(initialTasks)
       }
@@ -192,45 +197,55 @@ export function KanbanBoard({
 
     // Если перетаскиваем столбец
     const activeColumnDrag = columns.find((c) => c.id === activeId)
-    if (activeColumnDrag) {
+    if (activeColumnDrag && wasDraggingColumn) {
       const overColumn = columns.find((c) => c.id === overId)
       if (!overColumn || activeColumnDrag.id === overColumn.id) {
-        setColumns(initialColumns)
+        setColumns(initialColumns.sort((a, b) => a.position - b.position))
         return
       }
 
-      // Обновляем позиции столбцов на сервере
-      const newColumns = [...columns]
-      const activeIndex = newColumns.findIndex((c) => c.id === activeId)
-      const overIndex = newColumns.findIndex((c) => c.id === overId)
+      // Используем текущее состояние columns (они уже обновлены в handleDragOver)
+      const currentColumns = [...columns].sort((a, b) => a.position - b.position)
+      
+      // Пересчитываем позиции на основе текущего порядка
+      const updatedColumns = currentColumns.map((col, index) => ({
+        ...col,
+        position: index,
+      }))
 
-      if (activeIndex !== -1 && overIndex !== -1) {
-        const [removed] = newColumns.splice(activeIndex, 1)
-        newColumns.splice(overIndex, 0, removed)
+      // Отправляем обновления на сервер для каждого столбца
+      try {
+        const updatePromises = updatedColumns.map((col, index) =>
+          fetch(`/api/columns/${col.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ position: index }),
+          }).then(res => {
+            if (!res.ok) throw new Error(`Failed to update column ${col.id}`)
+            return res.json()
+          })
+        )
+        
+        const results = await Promise.all(updatePromises)
 
-        // Обновляем позиции
-        const updatedColumns = newColumns.map((col, index) => ({
-          ...col,
-          position: index,
-        }))
-
-        // Отправляем обновления на сервер для каждого столбца
+        // Обновляем состояние с данными с сервера
+        const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
+        setColumns(sortedResults)
+        toast.success('Порядок столбцов обновлён')
+      } catch (error) {
+        console.error('Error updating columns:', error)
+        toast.error('Ошибка при обновлении порядка столбцов')
+        // Перезагружаем с сервера
         try {
-          await Promise.all(
-            updatedColumns.map((col, index) =>
-              fetch(`/api/columns/${col.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ position: index }),
-              })
-            )
-          )
-
-          setColumns(updatedColumns)
-          toast.success('Порядок столбцов обновлён')
+          const res = await fetch(`/api/boards/${boardId}`)
+          if (res.ok) {
+            const board = await res.json()
+            setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
+          } else {
+            setColumns(initialColumns.sort((a, b) => a.position - b.position))
+          }
         } catch {
-          toast.error('Ошибка при обновлении порядка столбцов')
-          setColumns(initialColumns)
+          setColumns(initialColumns.sort((a, b) => a.position - b.position))
         }
       }
       return
@@ -349,8 +364,8 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="h-full overflow-x-auto" style={boardStyle}>
-      <div className="p-6">
+    <div className="h-full overflow-x-auto overflow-y-hidden" style={boardStyle}>
+      <div className="p-6 h-full">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}

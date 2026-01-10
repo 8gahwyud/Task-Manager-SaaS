@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, startTransition } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Modal } from './Modal'
 
@@ -27,8 +27,10 @@ export function BoardSelector({
   isOwner,
 }: BoardSelectorProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -54,8 +56,8 @@ export function BoardSelector({
       toast.success('Доска создана')
       setShowCreateModal(false)
       setFormData({ name: '', description: '' })
-      router.push(`/projects/${projectId}?board=${newBoard.id}`)
-      router.refresh()
+      // Используем window.location для полной перезагрузки с новой доской
+      window.location.href = `/projects/${projectId}?board=${newBoard.id}`
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Ошибка')
     } finally {
@@ -74,10 +76,14 @@ export function BoardSelector({
             <button
               key={board.id}
               onClick={() => {
+                if (board.id === currentBoardId) return
+                setIsNavigating(true)
                 router.push(`/projects/${projectId}?board=${board.id}`)
-                router.refresh()
+                // Router refresh вызовется автоматически при переходе
+                setTimeout(() => setIsNavigating(false), 500)
               }}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              disabled={isNavigating}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50 ${
                 board.id === currentBoardId
                   ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'

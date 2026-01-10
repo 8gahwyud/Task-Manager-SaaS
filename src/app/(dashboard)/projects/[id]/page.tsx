@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import { ProjectHeader } from '@/components/ProjectHeader'
 import { BoardSelector } from '@/components/BoardSelector'
+import { Suspense } from 'react'
+import { BoardLoader } from '@/components/BoardLoader'
 
 interface Props {
   params: { id: string }
@@ -56,7 +58,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   const isOwner = project.ownerId === session!.user.id
   
   // Выбираем доску из query параметра или первую
-  const selectedBoardId = searchParams.board || project.boards[0]?.id
+  const selectedBoardId = searchParams?.board || project.boards[0]?.id
   const board = project.boards.find((b) => b.id === selectedBoardId) || project.boards[0]
 
   // Если нет досок - показываем сообщение
@@ -87,33 +89,37 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <ProjectHeader
-        project={{
-          id: project.id,
-          name: project.name,
-          description: project.description,
-        }}
-        members={members}
-        isOwner={isOwner}
-      />
-      <BoardSelector
-        projectId={project.id}
-        boards={project.boards}
-        currentBoardId={board.id}
-        isOwner={isOwner}
-      />
-      <div className="flex-1 overflow-hidden">
-        <KanbanBoard
-          boardId={board.id}
-          projectId={project.id}
-          initialTasks={board.tasks}
-          initialColumns={board.columns}
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex-shrink-0">
+        <ProjectHeader
+          project={{
+            id: project.id,
+            name: project.name,
+            description: project.description,
+          }}
           members={members}
-          backgroundImage={board.backgroundImage}
-          backgroundColor={board.backgroundColor}
           isOwner={isOwner}
         />
+        <BoardSelector
+          projectId={project.id}
+          boards={project.boards}
+          currentBoardId={board.id}
+          isOwner={isOwner}
+        />
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Suspense fallback={<BoardLoader />}>
+          <KanbanBoard
+            boardId={board.id}
+            projectId={project.id}
+            initialTasks={board.tasks}
+            initialColumns={board.columns}
+            members={members}
+            backgroundImage={board.backgroundImage}
+            backgroundColor={board.backgroundColor}
+            isOwner={isOwner}
+          />
+        </Suspense>
       </div>
     </div>
   )
