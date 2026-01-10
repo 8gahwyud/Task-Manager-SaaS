@@ -14,36 +14,64 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
       return
     }
     
-    // Блокируем ТОЛЬКО события drag в сайдбаре, чтобы они не активировали DndContext
-    // Все остальные клики работают нормально
+    // Блокируем события от DndContext для элементов вне доски
+    // Регистрируем в самую раннюю фазу capture ДО того, как DndContext зарегистрирует свои обработчики
     
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Блокируем только сайдбар от активации drag
+      // Проверяем, клик ли это в сайдбаре
       const sidebar = target.closest('aside')
-      if (sidebar) {
-        // Проверяем, что это не клик в доске (который может быть внутри сайдбара технически)
-        if (!boardContainer.contains(target)) {
-          // Это клик в сайдбаре вне доски - блокируем от DndContext
-          e.stopImmediatePropagation()
-        }
+      
+      // Также проверяем, что это НЕ клик в области доски (чтобы не блокировать drag-and-drop на доске)
+      const isInBoard = boardContainer.contains(target)
+      
+      // Блокируем только сайдбар И если это не доска
+      if (sidebar && !isInBoard) {
+        // КРИТИЧНО: останавливаем ДО того, как событие дойдет до DndContext
+        e.stopImmediatePropagation()
+      }
+      
+      // Также разрешаем клики в header, links, buttons вне доски
+      const isLink = target.closest('a')
+      const isButton = target.closest('button')
+      const isHeader = target.closest('header')
+      const isDataNoDndBlock = target.closest('[data-no-dnd-block]')
+      
+      // Если это клик на ссылку, кнопку в header, или элемент с data-no-dnd-block и НЕ в доске - разрешаем
+      if ((isLink || isButton || isDataNoDndBlock) && (isHeader || !isInBoard)) {
+        e.stopImmediatePropagation()
       }
     }
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // Блокируем только сайдбар от активации drag
+      // Проверяем, клик ли это в сайдбаре
       const sidebar = target.closest('aside')
-      if (sidebar) {
-        if (!boardContainer.contains(target)) {
-          e.stopImmediatePropagation()
-        }
+      
+      // Также проверяем, что это НЕ клик в области доски
+      const isInBoard = boardContainer.contains(target)
+      
+      // Блокируем только сайдбар И если это не доска
+      if (sidebar && !isInBoard) {
+        e.stopImmediatePropagation()
+      }
+      
+      // Также разрешаем клики в header, links, buttons вне доски
+      const isLink = target.closest('a')
+      const isButton = target.closest('button')
+      const isHeader = target.closest('header')
+      const isDataNoDndBlock = target.closest('[data-no-dnd-block]')
+      
+      // Если это клик на ссылку, кнопку в header, или элемент с data-no-dnd-block и НЕ в доске - разрешаем
+      if ((isLink || isButton || isDataNoDndBlock) && (isHeader || !isInBoard)) {
+        e.stopImmediatePropagation()
       }
     }
 
-    // Используем capture: true, чтобы перехватить ДО DndContext
+    // КРИТИЧНО: используем capture: true и регистрируем как можно раньше
+    // Это гарантирует, что наши обработчики будут вызваны ДО обработчиков DndContext
     const options: AddEventListenerOptions = { 
       capture: true, 
       passive: false 
