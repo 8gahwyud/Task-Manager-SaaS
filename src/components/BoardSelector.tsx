@@ -77,13 +77,10 @@ export function BoardSelector({
               key={board.id}
               onClick={() => {
                 if (board.id === currentBoardId) return
-                setIsNavigating(true)
                 router.push(`/projects/${projectId}?board=${board.id}`)
-                // Router refresh вызовется автоматически при переходе
-                setTimeout(() => setIsNavigating(false), 500)
+                router.refresh()
               }}
-              disabled={isNavigating}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-50 ${
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                 board.id === currentBoardId
                   ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'

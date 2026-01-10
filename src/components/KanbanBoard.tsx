@@ -134,11 +134,11 @@ export function KanbanBoard({
           const activeIdx = sorted.findIndex((c) => c.id === activeId)
           const overIdx = sorted.findIndex((c) => c.id === overId)
           
-          if (activeIdx !== -1 && overIdx !== -1) {
+          if (activeIdx !== -1 && overIdx !== -1 && activeIdx !== overIdx) {
             const [removed] = sorted.splice(activeIdx, 1)
             sorted.splice(overIdx, 0, removed)
             
-            // Обновляем позиции
+            // Обновляем позиции для всех столбцов
             return sorted.map((col, index) => ({
               ...col,
               position: index,
@@ -206,22 +206,17 @@ export function KanbanBoard({
         return
       }
 
-      // Используем текущее состояние columns (они уже обновлены в handleDragOver)
-      const currentColumns = [...columns].sort((a, b) => a.position - b.position)
-      
-      // Пересчитываем позиции на основе текущего порядка
-      const updatedColumns = currentColumns.map((col, index) => ({
-        ...col,
-        position: index,
-      }))
+      // Используем текущее состояние columns (они уже обновлены в handleDragOver с новыми позициями)
+      // Просто отправляем на сервер текущее состояние
+      const columnsToSave = [...columns].sort((a, b) => a.position - b.position)
 
-      // Отправляем обновления на сервер для каждого столбца
+      // Отправляем обновления на сервер для каждого столбца с его новой позицией
       try {
-        const updatePromises = updatedColumns.map((col, index) =>
+        const updatePromises = columnsToSave.map((col) =>
           fetch(`/api/columns/${col.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: index }),
+            body: JSON.stringify({ position: col.position }),
           }).then(res => {
             if (!res.ok) throw new Error(`Failed to update column ${col.id}`)
             return res.json()
@@ -366,8 +361,9 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="h-full overflow-x-auto overflow-y-hidden" style={boardStyle}>
-      <div className="p-6 h-full">
+    <div className="h-full overflow-hidden" style={boardStyle}>
+      <div className="h-full overflow-x-auto overflow-y-hidden">
+        <div className="p-6 inline-flex items-start gap-4 min-h-full">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -379,72 +375,70 @@ export function KanbanBoard({
             items={columns.map((c) => c.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex gap-4 min-w-max h-full">
-              {columns
-                .sort((a, b) => a.position - b.position)
-                .map((column) => (
-                <SortableContext
-                  key={column.id}
-                  items={tasksByColumn[column.id]?.map((t) => t.id) || []}
-                  strategy={verticalListSortingStrategy}
+            {columns
+              .sort((a, b) => a.position - b.position)
+              .map((column) => (
+              <SortableContext
+                key={column.id}
+                items={tasksByColumn[column.id]?.map((t) => t.id) || []}
+                strategy={verticalListSortingStrategy}
+              >
+                <KanbanColumn
+                  id={column.id}
+                  title={column.name}
+                  color={column.color}
+                  count={tasksByColumn[column.id]?.length || 0}
+                  boardId={boardId}
+                  isOwner={isOwner}
+                  onColumnUpdate={async () => {
+                    const res = await fetch(`/api/boards/${boardId}`)
+                    if (res.ok) {
+                      const updatedBoard = await res.json()
+                      setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
+                    }
+                  }}
+                  onColumnDelete={async () => {
+                    const res = await fetch(`/api/boards/${boardId}`)
+                    if (res.ok) {
+                      const updatedBoard = await res.json()
+                      setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
+                    }
+                  }}
                 >
-                  <KanbanColumn
-                    id={column.id}
-                    title={column.name}
-                    color={column.color}
-                    count={tasksByColumn[column.id]?.length || 0}
-                    boardId={boardId}
-                    isOwner={isOwner}
-                    onColumnUpdate={async () => {
-                      const res = await fetch(`/api/boards/${boardId}`)
-                      if (res.ok) {
-                        const updatedBoard = await res.json()
-                        setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
-                      }
-                    }}
-                    onColumnDelete={async () => {
-                      const res = await fetch(`/api/boards/${boardId}`)
-                      if (res.ok) {
-                        const updatedBoard = await res.json()
-                        setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
-                      }
-                    }}
-                  >
-                    {tasksByColumn[column.id]?.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        members={members}
-                        onUpdate={handleTaskUpdated}
-                        onDelete={handleTaskDeleted}
-                      />
-                    ))}
-                    <CreateTaskButton
-                      boardId={boardId}
-                      projectId={projectId}
-                      columnId={column.id}
+                  {tasksByColumn[column.id]?.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
                       members={members}
-                      onCreated={handleTaskCreated}
+                      onUpdate={handleTaskUpdated}
+                      onDelete={handleTaskDeleted}
                     />
-                  </KanbanColumn>
-                </SortableContext>
-              ))}
+                  ))}
+                  <CreateTaskButton
+                    boardId={boardId}
+                    projectId={projectId}
+                    columnId={column.id}
+                    members={members}
+                    onCreated={handleTaskCreated}
+                  />
+                </KanbanColumn>
+              </SortableContext>
+            ))}
 
-              {/* Create Column Button */}
-              {isOwner && (
-                <div className="w-80 flex-shrink-0">
-                  <button
-                    onClick={() => setShowCreateColumnModal(true)}
-                    className="w-full h-16 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Добавить столбец
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Create Column Button */}
+            {isOwner && (
+              <div className="w-80 flex-shrink-0">
+                <button
+                  onClick={() => setShowCreateColumnModal(true)}
+                  className="w-full h-16 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Добавить столбец
+                </button>
+              </div>
+            )}
           </SortableContext>
 
           <DragOverlay>
@@ -470,6 +464,7 @@ export function KanbanBoard({
             )}
           </DragOverlay>
         </DndContext>
+        </div>
       </div>
 
       {/* Create Column Modal */}
