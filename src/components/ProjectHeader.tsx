@@ -58,7 +58,7 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
 
   return (
     <>
-      <header className="px-8 py-6 border-b border-gray-200 w-full max-w-full overflow-hidden">
+      <header className="px-8 py-6 border-b border-gray-200 w-full overflow-x-hidden">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <Link
