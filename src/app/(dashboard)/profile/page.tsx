@@ -24,6 +24,7 @@ export default function ProfilePage() {
     name: '',
     avatarUrl: '',
   })
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -91,6 +92,62 @@ export default function ProfilePage() {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Проверяем тип файла
+    if (!file.type.startsWith('image/')) {
+      toast.error('Файл должен быть изображением')
+      return
+    }
+
+    // Проверяем размер (макс 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Размер файла не должен превышать 5MB')
+      return
+    }
+
+    setIsUploadingAvatar(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/user/upload-avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Ошибка при загрузке')
+      }
+
+      const updated = await res.json()
+      setUser(updated)
+      setFormData({ ...formData, avatarUrl: updated.avatarUrl || '' })
+
+      // Обновляем сессию
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          name: updated.name,
+        },
+      })
+
+      toast.success('Аватар обновлён')
+      router.refresh()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка')
+    } finally {
+      setIsUploadingAvatar(false)
+      // Сбрасываем input, чтобы можно было загрузить тот же файл снова
+      e.target.value = ''
+    }
+  }
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -152,36 +209,57 @@ export default function ProfilePage() {
       <div className="card p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Аватар</h2>
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-semibold relative overflow-hidden">
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
-              />
-            ) : (
-              avatarInitial
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center text-white text-2xl font-semibold overflow-hidden">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              ) : (
+                avatarInitial
+              )}
+            </div>
+            {isUploadingAvatar && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              </div>
             )}
           </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              URL изображения
-            </label>
-            <input
-              type="url"
-              className="input-field"
-              placeholder="https://example.com/avatar.jpg"
-              value={formData.avatarUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, avatarUrl: e.target.value })
-              }
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Вставьте ссылку на изображение (например, с imgur.com)
-            </p>
+          <div className="flex-1 space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Загрузить изображение
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                disabled={isUploadingAvatar}
+                className="input-field cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Поддерживаются форматы: JPG, PNG, GIF (макс. 5MB)
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Или вставьте URL изображения
+              </label>
+              <input
+                type="url"
+                className="input-field"
+                placeholder="https://example.com/avatar.jpg"
+                value={formData.avatarUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, avatarUrl: e.target.value })
+                }
+              />
+            </div>
           </div>
         </div>
       </div>
