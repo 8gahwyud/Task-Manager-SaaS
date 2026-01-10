@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -397,7 +397,7 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="h-full w-full overflow-hidden relative" style={boardStyle}>
+    <div ref={boardContainerRef} className="h-full w-full overflow-hidden relative" style={boardStyle}>
       <div className="h-full w-full overflow-x-auto overflow-y-hidden pointer-events-auto">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
         <DndContext

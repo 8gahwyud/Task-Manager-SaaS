@@ -59,12 +59,12 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
 
   return (
     <>
-      <header className="px-8 py-6 border-b border-gray-200 w-full overflow-x-hidden relative z-10">
+      <header className="px-8 py-6 border-b border-gray-200 w-full overflow-x-hidden relative z-20 pointer-events-auto">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/projects"
-              className="p-2 hover:bg-gray-50 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-50 rounded-lg transition-colors relative z-30"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />

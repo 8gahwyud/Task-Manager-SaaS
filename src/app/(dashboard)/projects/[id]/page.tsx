@@ -92,8 +92,8 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   return (
     <BoardLoadingProvider>
       <BoardCountProvider>
-        <div className="flex flex-col overflow-hidden w-full" style={{ height: '100vh' }}>
-        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full">
+        <div className="flex flex-col overflow-hidden w-full relative" style={{ height: '100vh' }}>
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full relative z-20 pointer-events-auto">
           <ProjectHeader
             project={{
               id: project.id,
