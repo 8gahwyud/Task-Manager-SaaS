@@ -16,11 +16,9 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
                        target.closest('nav')
       
       if (isOutside) {
-        // Полностью останавливаем событие
+        // Останавливаем только для DndContext, но не блокируем клики
         e.stopImmediatePropagation()
-        e.preventDefault()
-        e.stopPropagation()
-        return false
+        // НЕ используем preventDefault, чтобы клики работали
       }
     }
 
@@ -34,14 +32,13 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
       
       if (isOutside) {
         e.stopImmediatePropagation()
-        e.preventDefault()
-        e.stopPropagation()
-        return false
+        // НЕ используем preventDefault, чтобы клики работали
       }
     }
 
     // Используем capture phase с самым высоким приоритетом
     // true означает capture phase, и мы останавливаем событие до того, как оно дойдет до DndContext
+    // passive: false чтобы можно было использовать stopImmediatePropagation
     const options = { capture: true, passive: false } as AddEventListenerOptions
     
     document.addEventListener('pointerdown', handlePointerDown, options)
