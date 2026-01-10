@@ -10,6 +10,7 @@ interface Member {
   id: string
   name: string
   email: string
+  avatarUrl?: string | null
 }
 
 interface ProjectHeaderProps {
@@ -83,14 +84,22 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
               {members.slice(0, 4).map((member) => (
                 <div
                   key={member.id}
-                  className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-sm font-medium border-2 border-white"
+                  className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-white text-sm font-medium border-2 border-white overflow-hidden flex-shrink-0"
                   title={member.name}
                 >
-                  {member.name.charAt(0).toUpperCase()}
+                  {member.avatarUrl ? (
+                    <img
+                      src={member.avatarUrl}
+                      alt={member.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    member.name.charAt(0).toUpperCase()
+                  )}
                 </div>
               ))}
               {members.length > 4 && (
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-sm font-medium border-2 border-white">
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-sm font-medium border-2 border-white flex-shrink-0">
                   +{members.length - 4}
                 </div>
               )}

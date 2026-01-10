@@ -24,13 +24,13 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         { members: { some: { userId: session!.user.id } } },
       ],
     },
-    include: {
-      owner: { select: { id: true, name: true, email: true } },
-      members: {
-        include: {
-          user: { select: { id: true, name: true, email: true } },
+      include: {
+        owner: { select: { id: true, name: true, email: true, avatarUrl: true } },
+        members: {
+          include: {
+            user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          },
         },
-      },
       boards: {
         include: {
           columns: {
