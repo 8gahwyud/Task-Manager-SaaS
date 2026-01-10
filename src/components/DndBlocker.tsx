@@ -20,8 +20,16 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // ПЕРВЫЙ ПРИОРИТЕТ: НИКОГДА не блокируем интерактивные элементы
-      // Если это кнопка, ссылка, input или любой интерактивный элемент - ВОЗВРАЩАЕМСЯ
+      // КРИТИЧНО: Проверяем интерактивные элементы ПЕРВЫМИ
+      // Используем tagName для прямых проверок и closest для вложенных элементов
+      
+      // Проверка 1: Прямой интерактивный элемент
+      const tagName = target.tagName.toLowerCase()
+      if (['a', 'button', 'input', 'select', 'textarea', 'label'].includes(tagName)) {
+        return // НЕ БЛОКИРУЕМ
+      }
+      
+      // Проверка 2: Вложенный интерактивный элемент (SVG внутри кнопки и т.д.)
       if (
         target.closest('a') || 
         target.closest('button') || 
@@ -30,22 +38,18 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
         target.closest('textarea') ||
         target.closest('label') ||
         target.closest('[role="button"]') ||
-        target.hasAttribute('onclick')
+        target.closest('[onclick]') ||
+        target.closest('[data-no-dnd-block]')
       ) {
-        return // НЕ БЛОКИРУЕМ - пусть React обработчики работают
+        return // НЕ БЛОКИРУЕМ
       }
       
-      // ВТОРОЙ ПРИОРИТЕТ: НИКОГДА не блокируем клики в header
+      // Проверка 3: НИКОГДА не блокируем клики в header
       if (target.closest('header')) {
         return
       }
       
-      // ТРЕТИЙ ПРИОРИТЕТ: НИКОГДА не блокируем элементы с data-no-dnd-block
-      if (target.closest('[data-no-dnd-block]')) {
-        return
-      }
-      
-      // ЧЕТВЕРТЫЙ ПРИОРИТЕТ: НИКОГДА не блокируем клики в доске
+      // Проверка 4: НИКОГДА не блокируем клики в доске
       if (boardContainer.contains(target)) {
         return
       }
@@ -61,7 +65,16 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // ПЕРВЫЙ ПРИОРИТЕТ: НИКОГДА не блокируем интерактивные элементы
+      // КРИТИЧНО: Проверяем интерактивные элементы ПЕРВЫМИ
+      // Используем tagName для прямых проверок и closest для вложенных элементов
+      
+      // Проверка 1: Прямой интерактивный элемент
+      const tagName = target.tagName.toLowerCase()
+      if (['a', 'button', 'input', 'select', 'textarea', 'label'].includes(tagName)) {
+        return // НЕ БЛОКИРУЕМ
+      }
+      
+      // Проверка 2: Вложенный интерактивный элемент (SVG внутри кнопки и т.д.)
       if (
         target.closest('a') || 
         target.closest('button') || 
@@ -70,22 +83,18 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
         target.closest('textarea') ||
         target.closest('label') ||
         target.closest('[role="button"]') ||
-        target.hasAttribute('onclick')
+        target.closest('[onclick]') ||
+        target.closest('[data-no-dnd-block]')
       ) {
         return // НЕ БЛОКИРУЕМ
       }
       
-      // ВТОРОЙ ПРИОРИТЕТ: НИКОГДА не блокируем клики в header
+      // Проверка 3: НИКОГДА не блокируем клики в header
       if (target.closest('header')) {
         return
       }
       
-      // ТРЕТИЙ ПРИОРИТЕТ: НИКОГДА не блокируем элементы с data-no-dnd-block
-      if (target.closest('[data-no-dnd-block]')) {
-        return
-      }
-      
-      // ЧЕТВЕРТЫЙ ПРИОРИТЕТ: НИКОГДА не блокируем клики в доске
+      // Проверка 4: НИКОГДА не блокируем клики в доске
       if (boardContainer.contains(target)) {
         return
       }
