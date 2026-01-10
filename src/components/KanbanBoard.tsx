@@ -207,12 +207,17 @@ export function KanbanBoard({
         return
       }
 
-      // Получаем текущий отсортированный массив столбцов
-      const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
-      const oldIndex = sortedColumns.findIndex((c) => c.id === activeId)
-      const newIndex = sortedColumns.findIndex((c) => c.id === overId)
+      // Используем функциональное обновление для получения актуального состояния
+      setColumns((currentColumns) => {
+        // Получаем текущий отсортированный массив столбцов
+        const sortedColumns = [...currentColumns].sort((a, b) => a.position - b.position)
+        const oldIndex = sortedColumns.findIndex((c) => c.id === activeId)
+        const newIndex = sortedColumns.findIndex((c) => c.id === overId)
 
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+          return currentColumns
+        }
+
         // Используем arrayMove для правильного перемещения
         const reorderedColumns = arrayMove(sortedColumns, oldIndex, newIndex)
 
@@ -222,12 +227,9 @@ export function KanbanBoard({
           position: index,
         }))
 
-        // Обновляем локальное состояние оптимистично
-        setColumns(columnsWithNewPositions)
-
-        // Отправляем обновления на сервер
-        try {
-          const updatePromises = columnsWithNewPositions.map((col) =>
+        // Отправляем обновления на сервер асинхронно
+        Promise.all(
+          columnsWithNewPositions.map((col) =>
             fetch(`/api/columns/${col.id}`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
@@ -240,30 +242,35 @@ export function KanbanBoard({
               return res.json()
             })
           )
-          
-          const results = await Promise.all(updatePromises)
+        )
+          .then((results) => {
+            // Обновляем состояние с данными с сервера (позиции уже правильные)
+            const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
+            setColumns(sortedResults)
+            toast.success('Порядок столбцов обновлён')
+          })
+          .catch((error) => {
+            console.error('Error updating columns:', error)
+            toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении порядка столбцов')
+            // Перезагружаем с сервера
+            fetch(`/api/boards/${boardId}`)
+              .then((res) => {
+                if (res.ok) {
+                  return res.json()
+                }
+                throw new Error('Failed to fetch board')
+              })
+              .then((board) => {
+                setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
+              })
+              .catch(() => {
+                setColumns(initialColumns.sort((a, b) => a.position - b.position))
+              })
+          })
 
-          // Обновляем состояние с данными с сервера
-          const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
-          setColumns(sortedResults)
-          toast.success('Порядок столбцов обновлён')
-        } catch (error) {
-          console.error('Error updating columns:', error)
-          toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении порядка столбцов')
-          // Перезагружаем с сервера
-          try {
-            const res = await fetch(`/api/boards/${boardId}`)
-            if (res.ok) {
-              const board = await res.json()
-              setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
-            } else {
-              setColumns(initialColumns.sort((a, b) => a.position - b.position))
-            }
-          } catch {
-            setColumns(initialColumns.sort((a, b) => a.position - b.position))
-          }
-        }
-      }
+        // Возвращаем новое состояние сразу (оптимистичное обновление)
+        return columnsWithNewPositions
+      })
       return
     }
 
