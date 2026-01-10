@@ -153,7 +153,7 @@ export function ProjectHeader({ project, members, isOwner }: ProjectHeaderProps)
               onChange={(e) => setInviteEmail(e.target.value)}
             />
             <p className="text-xs text-gray-600 mt-2">
-              Если пользователь зарегистрирован, он сразу получит доступ к проекту
+              Пользователь должен быть зарегистрирован в системе
             </p>
           </div>
 

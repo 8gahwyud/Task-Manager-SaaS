@@ -53,19 +53,10 @@ export async function POST(
     })
 
     if (!invitedUser) {
-      // Создаем приглашение для незарегистрированного пользователя
-      const invitation = await prisma.invitation.create({
-        data: {
-          email,
-          projectId: params.id,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 дней
-        },
-      })
-
-      return NextResponse.json({
-        message: 'Приглашение создано',
-        invitation,
-      })
+      return NextResponse.json(
+        { error: 'Пользователь с таким email не существует' },
+        { status: 404 }
+      )
     }
 
     // Проверяем, не является ли уже участником
