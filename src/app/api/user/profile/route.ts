@@ -7,7 +7,14 @@ import bcrypt from 'bcryptjs'
 
 const updateProfileSchema = z.object({
   name: z.string().min(2, 'Минимум 2 символа').optional(),
-  avatarUrl: z.string().url('Некорректный URL').optional().nullable(),
+  avatarUrl: z
+    .string()
+    .refine(
+      (val) => !val || val.startsWith('http') || val.startsWith('data:image'),
+      'Должен быть валидный URL или base64 data URL'
+    )
+    .optional()
+    .nullable(),
   currentPassword: z.string().optional(),
   newPassword: z.string().min(6, 'Минимум 6 символов').optional(),
 })
