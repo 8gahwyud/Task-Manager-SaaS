@@ -438,12 +438,11 @@ export function KanbanBoard({
       ref={boardContainerRef}
       id={`board-${boardId}`}
       data-board-container
-      className="h-full w-full overflow-hidden relative" 
-      style={boardStyle}
+      className="h-full w-full overflow-hidden relative isolate" 
+      style={{ ...boardStyle, contain: 'layout style' }}
     >
-      <div className="h-full w-full overflow-x-auto overflow-y-hidden pointer-events-auto">
+      <div className="h-full w-full overflow-x-auto overflow-y-hidden">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
-        {/* DndContext временно отключён для диагностики */}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
