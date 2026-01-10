@@ -8,6 +8,7 @@ import { BoardSelector } from '@/components/BoardSelector'
 import { BoardSwitcher } from '@/components/BoardSwitcher'
 import { BoardLoadingProvider } from '@/contexts/BoardLoadingContext'
 import { BoardCountProvider } from '@/contexts/BoardCountContext'
+import { DndBlocker } from '@/components/DndBlocker'
 
 interface Props {
   params: { id: string }
@@ -92,6 +93,7 @@ export default async function ProjectPage({ params, searchParams }: Props) {
   return (
     <BoardLoadingProvider>
       <BoardCountProvider>
+        <DndBlocker boardContainerId={`board-${board.id}`} />
         <div className="flex flex-col overflow-hidden w-full relative" style={{ height: '100vh' }}>
         <div className="flex-shrink-0 bg-white border-b border-gray-200 overflow-x-hidden w-full relative z-20 pointer-events-auto" data-no-dnd-block>
           <ProjectHeader
