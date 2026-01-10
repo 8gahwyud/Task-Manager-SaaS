@@ -113,9 +113,9 @@ export default async function ProjectPage({ params, searchParams }: Props) {
             isOwner={isOwner}
           />
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden relative w-full pointer-events-none">
+        <div className="flex-1 min-h-0 overflow-hidden relative w-full">
           <BoardSwitcher>
-            <div className="h-full w-full pointer-events-auto">
+            <div className="h-full w-full">
             <KanbanBoard
               boardId={board.id}
               projectId={project.id}
