@@ -124,33 +124,9 @@ export function KanbanBoard({
     const activeId = active.id as string
     const overId = over.id as string
 
-    // Если перетаскиваем столбец
-    const activeColumnDrag = columns.find((c) => c.id === activeId)
-    if (activeColumnDrag) {
-      const overColumn = columns.find((c) => c.id === overId)
-      if (overColumn && activeColumnDrag.id !== overColumn.id) {
-        // Получаем текущий отсортированный порядок столбцов
-        setColumns((prev) => {
-          const sorted = [...prev].sort((a, b) => a.position - b.position)
-          const activeIdx = sorted.findIndex((c) => c.id === activeId)
-          const overIdx = sorted.findIndex((c) => c.id === overId)
-          
-          if (activeIdx !== -1 && overIdx !== -1 && activeIdx !== overIdx) {
-            const [removed] = sorted.splice(activeIdx, 1)
-            sorted.splice(overIdx, 0, removed)
-            
-            // Обновляем позиции для всех столбцов
-            return sorted.map((col, index) => ({
-              ...col,
-              position: index,
-            }))
-          }
-          return prev
-        })
-      }
-      return
-    }
-
+    // Для столбцов не обновляем состояние в handleDragOver
+    // Визуальное перемещение обрабатывается @dnd-kit автоматически
+    
     // Если перетаскиваем задачу
     const activeTask = tasks.find((t) => t.id === activeId)
     if (!activeTask) return
@@ -203,74 +179,61 @@ export function KanbanBoard({
     if (activeColumnDrag && wasDraggingColumn) {
       const overColumn = columns.find((c) => c.id === overId)
       if (!overColumn || activeColumnDrag.id === overColumn.id) {
-        setColumns(initialColumns.sort((a, b) => a.position - b.position))
+        // Не меняли порядок - ничего не делаем
         return
       }
 
-      // Используем функциональное обновление для получения актуального состояния
-      setColumns((currentColumns) => {
-        // Получаем текущий отсортированный массив столбцов
-        const sortedColumns = [...currentColumns].sort((a, b) => a.position - b.position)
-        const oldIndex = sortedColumns.findIndex((c) => c.id === activeId)
-        const newIndex = sortedColumns.findIndex((c) => c.id === overId)
+      // Получаем текущий отсортированный массив столбцов (по позициям из базы)
+      const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
+      const oldIndex = sortedColumns.findIndex((c) => c.id === activeId)
+      const newIndex = sortedColumns.findIndex((c) => c.id === overId)
 
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
-          return currentColumns
-        }
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+        return
+      }
 
-        // Используем arrayMove для правильного перемещения
-        const reorderedColumns = arrayMove(sortedColumns, oldIndex, newIndex)
+      // Используем arrayMove для правильного перемещения
+      const reorderedColumns = arrayMove(sortedColumns, oldIndex, newIndex)
 
-        // Обновляем позиции для всех столбцов
-        const columnsWithNewPositions = reorderedColumns.map((col, index) => ({
-          ...col,
-          position: index,
-        }))
+      // Обновляем позиции для всех столбцов (0, 1, 2, 3...)
+      const columnsWithNewPositions = reorderedColumns.map((col, index) => ({
+        ...col,
+        position: index,
+      }))
 
-        // Отправляем обновления на сервер асинхронно
-        Promise.all(
-          columnsWithNewPositions.map((col) =>
-            fetch(`/api/columns/${col.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ position: col.position }),
-            }).then(async (res) => {
-              if (!res.ok) {
-                const error = await res.json().catch(() => ({ error: 'Unknown error' }))
-                throw new Error(error.error || `Failed to update column ${col.id}`)
-              }
-              return res.json()
-            })
-          )
+      // Обновляем локальное состояние оптимистично
+      setColumns(columnsWithNewPositions)
+
+      // Отправляем обновления на сервер последовательно, чтобы избежать race conditions
+      try {
+        // Сначала обновляем все позиции на сервере
+        const updatePromises = columnsWithNewPositions.map((col) =>
+          fetch(`/api/columns/${col.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ position: col.position }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
+              throw new Error(errorData.error || `Failed to update column ${col.id}`)
+            }
+            return res.json()
+          })
         )
-          .then((results) => {
-            // Обновляем состояние с данными с сервера (позиции уже правильные)
-            const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
-            setColumns(sortedResults)
-            toast.success('Порядок столбцов обновлён')
-          })
-          .catch((error) => {
-            console.error('Error updating columns:', error)
-            toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении порядка столбцов')
-            // Перезагружаем с сервера
-            fetch(`/api/boards/${boardId}`)
-              .then((res) => {
-                if (res.ok) {
-                  return res.json()
-                }
-                throw new Error('Failed to fetch board')
-              })
-              .then((board) => {
-                setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
-              })
-              .catch(() => {
-                setColumns(initialColumns.sort((a, b) => a.position - b.position))
-              })
-          })
 
-        // Возвращаем новое состояние сразу (оптимистичное обновление)
-        return columnsWithNewPositions
-      })
+        const results = await Promise.all(updatePromises)
+
+        // Обновляем состояние с данными с сервера (проверяем, что позиции сохранились)
+        const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
+        setColumns(sortedResults)
+        toast.success('Порядок столбцов обновлён')
+      } catch (error) {
+        console.error('Error updating columns:', error)
+        toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении порядка столбцов')
+        
+        // Откатываем к исходному состоянию при ошибке
+        setColumns(initialColumns.sort((a, b) => a.position - b.position))
+      }
       return
     }
 
