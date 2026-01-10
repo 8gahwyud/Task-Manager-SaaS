@@ -361,9 +361,9 @@ export function KanbanBoard({
   }
 
   return (
-    <div className="h-full overflow-hidden" style={boardStyle}>
-      <div className="h-full overflow-x-auto overflow-y-hidden">
-        <div className="p-6 inline-flex items-start gap-4 min-h-full">
+    <div className="h-full w-full overflow-hidden" style={boardStyle}>
+      <div className="h-full w-full overflow-x-auto overflow-y-hidden">
+        <div className="p-6 flex items-start gap-4 w-max min-h-full">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
