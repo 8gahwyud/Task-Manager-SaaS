@@ -18,7 +18,6 @@ interface BoardSelectorProps {
   boards: Board[]
   currentBoardId: string
   isOwner: boolean
-  onBoardChange: (boardId: string) => void
 }
 
 export function BoardSelector({
@@ -26,26 +25,14 @@ export function BoardSelector({
   boards,
   currentBoardId,
   isOwner,
-  onBoardChange,
 }: BoardSelectorProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
   })
-
-  useEffect(() => {
-    const boardId = searchParams?.get('board')
-    if (boardId && boardId !== currentBoardId) {
-      const board = boards.find((b) => b.id === boardId)
-      if (board) {
-        onBoardChange(boardId)
-      }
-    }
-  }, [searchParams, boards, currentBoardId, onBoardChange])
 
   const handleCreateBoard = async (e: React.FormEvent) => {
     e.preventDefault()

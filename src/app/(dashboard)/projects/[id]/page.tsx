@@ -102,7 +102,6 @@ export default async function ProjectPage({ params, searchParams }: Props) {
         boards={project.boards}
         currentBoardId={board.id}
         isOwner={isOwner}
-        onBoardChange={() => {}}
       />
       <div className="flex-1 overflow-hidden">
         <KanbanBoard
