@@ -5,33 +5,53 @@ import { useEffect } from 'react'
 export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) {
   useEffect(() => {
     // Блокируем события от DndContext для элементов вне доски
+    // Используем самую раннюю фазу capture и останавливаем полностью
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Если клик в сайдбаре или header - останавливаем для DndContext
-      if (target.closest('aside') || target.closest('header') || target.closest('[data-no-dnd-block]')) {
-        // Останавливаем распространение события на уровне capture
-        // Это предотвратит его попадание в DndContext
+      // Если клик в сайдбаре, header или любом элементе с data-no-dnd-block
+      const isOutside = target.closest('aside') || 
+                       target.closest('header') || 
+                       target.closest('[data-no-dnd-block]') ||
+                       target.closest('nav')
+      
+      if (isOutside) {
+        // Полностью останавливаем событие
         e.stopImmediatePropagation()
+        e.preventDefault()
+        e.stopPropagation()
+        return false
       }
     }
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // Если клик в сайдбаре или header - останавливаем для DndContext
-      if (target.closest('aside') || target.closest('header') || target.closest('[data-no-dnd-block]')) {
+      const isOutside = target.closest('aside') || 
+                       target.closest('header') || 
+                       target.closest('[data-no-dnd-block]') ||
+                       target.closest('nav')
+      
+      if (isOutside) {
         e.stopImmediatePropagation()
+        e.preventDefault()
+        e.stopPropagation()
+        return false
       }
     }
 
-    // Используем capture phase, чтобы перехватить событие до DndContext
-    document.addEventListener('pointerdown', handlePointerDown, true)
-    document.addEventListener('mousedown', handleMouseDown, true)
+    // Используем capture phase с самым высоким приоритетом
+    // true означает capture phase, и мы останавливаем событие до того, как оно дойдет до DndContext
+    const options = { capture: true, passive: false } as AddEventListenerOptions
+    
+    document.addEventListener('pointerdown', handlePointerDown, options)
+    document.addEventListener('mousedown', handleMouseDown, options)
+    document.addEventListener('touchstart', handlePointerDown as any, options)
     
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown, true)
-      document.removeEventListener('mousedown', handleMouseDown, true)
+      document.removeEventListener('pointerdown', handlePointerDown, options)
+      document.removeEventListener('mousedown', handleMouseDown, options)
+      document.removeEventListener('touchstart', handlePointerDown as any, options)
     }
   }, [boardContainerId])
 

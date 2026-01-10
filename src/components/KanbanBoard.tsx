@@ -109,6 +109,33 @@ export function KanbanBoard({
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
     
+    // Проверяем, что событие произошло внутри контейнера доски
+    if (boardContainerRef.current && event.activatorEvent) {
+      const activatorEvent = event.activatorEvent as PointerEvent | MouseEvent | TouchEvent
+      let clientX = 0
+      let clientY = 0
+      
+      if ('clientX' in activatorEvent) {
+        clientX = activatorEvent.clientX
+        clientY = activatorEvent.clientY
+      } else if (activatorEvent.touches && activatorEvent.touches.length > 0) {
+        clientX = activatorEvent.touches[0].clientX
+        clientY = activatorEvent.touches[0].clientY
+      }
+      
+      const target = document.elementFromPoint(clientX, clientY) as HTMLElement
+      
+      // Если клик в сайдбаре, header или вне доски - не начинаем drag
+      if (
+        target?.closest('aside') ||
+        target?.closest('header') ||
+        target?.closest('[data-no-dnd-block]') ||
+        !boardContainerRef.current.contains(target)
+      ) {
+        return
+      }
+    }
+    
     // Проверяем, это задача или столбец
     const task = tasks.find((t) => t.id === active.id)
     if (task) {
