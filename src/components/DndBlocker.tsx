@@ -4,81 +4,60 @@ import { useEffect } from 'react'
 
 export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) {
   useEffect(() => {
-    // Блокируем события от DndContext для элементов вне доски
-    // Регистрируем в самую раннюю фазу capture ДО того, как DndContext зарегистрирует свои обработчики
+    // DndBlocker должен работать только на странице проекта с доской
+    if (!boardContainerId) {
+      return
+    }
+
+    const boardContainer = document.getElementById(boardContainerId)
+    if (!boardContainer) {
+      return
+    }
+    
+    // Блокируем ТОЛЬКО события drag в сайдбаре, чтобы они не активировали DndContext
+    // Все остальные клики работают нормально
     
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Проверяем, клик ли это в сайдбаре
+      // Блокируем только сайдбар от активации drag
       const sidebar = target.closest('aside')
-      
-      // Также проверяем, что это НЕ клик в области доски (чтобы не блокировать drag-and-drop на доске)
-      const boardContainer = boardContainerId ? document.getElementById(boardContainerId) : null
-      const isInBoard = boardContainer && boardContainer.contains(target)
-      
-      // Блокируем только сайдбар И если это не доска
-      if (sidebar && !isInBoard) {
-        // КРИТИЧНО: останавливаем ДО того, как событие дойдет до DndContext
-        e.stopImmediatePropagation()
-        // НЕ используем preventDefault - это блокирует клики
-      }
-      
-      // Также разрешаем клики в header, links, buttons вне доски
-      const isLink = target.closest('a')
-      const isButton = target.closest('button')
-      const isHeader = target.closest('header')
-      
-      // Если это клик на ссылку или кнопку в header и НЕ в доске - разрешаем
-      if ((isLink || isButton) && isHeader && !isInBoard) {
-        e.stopImmediatePropagation()
+      if (sidebar) {
+        // Проверяем, что это не клик в доске (который может быть внутри сайдбара технически)
+        if (!boardContainer.contains(target)) {
+          // Это клик в сайдбаре вне доски - блокируем от DndContext
+          e.stopImmediatePropagation()
+        }
       }
     }
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // Проверяем, клик ли это в сайдбаре
+      // Блокируем только сайдбар от активации drag
       const sidebar = target.closest('aside')
-      
-      // Также проверяем, что это НЕ клик в области доски
-      const boardContainer = boardContainerId ? document.getElementById(boardContainerId) : null
-      const isInBoard = boardContainer && boardContainer.contains(target)
-      
-      // Блокируем только сайдбар И если это не доска
-      if (sidebar && !isInBoard) {
-        e.stopImmediatePropagation()
-      }
-      
-      // Также разрешаем клики в header, links, buttons вне доски
-      const isLink = target.closest('a')
-      const isButton = target.closest('button')
-      const isHeader = target.closest('header')
-      
-      // Если это клик на ссылку или кнопку в header и НЕ в доске - разрешаем
-      if ((isLink || isButton) && isHeader && !isInBoard) {
-        e.stopImmediatePropagation()
+      if (sidebar) {
+        if (!boardContainer.contains(target)) {
+          e.stopImmediatePropagation()
+        }
       }
     }
 
-    // КРИТИЧНО: используем capture: true и регистрируем как можно раньше
-    // Это гарантирует, что наши обработчики будут вызваны ДО обработчиков DndContext
+    // Используем capture: true, чтобы перехватить ДО DndContext
     const options: AddEventListenerOptions = { 
       capture: true, 
       passive: false 
     }
     
-    // Регистрируем все типы событий, которые может использовать DndContext
+    // Регистрируем только события drag, не клики
     document.addEventListener('pointerdown', handlePointerDown, options)
     document.addEventListener('mousedown', handleMouseDown, options)
     document.addEventListener('touchstart', handlePointerDown as any, options)
-    document.addEventListener('click', handleMouseDown as any, options)
     
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, options)
       document.removeEventListener('mousedown', handleMouseDown, options)
       document.removeEventListener('touchstart', handlePointerDown as any, options)
-      document.removeEventListener('click', handleMouseDown as any, options)
     }
   }, [boardContainerId])
 
