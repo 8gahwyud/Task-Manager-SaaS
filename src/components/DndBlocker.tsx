@@ -10,25 +10,53 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Проверяем, клик ли это в сайдбаре (ТОЛЬКО aside, не header/BoardSelector)
+      // Проверяем, клик ли это в сайдбаре
       const sidebar = target.closest('aside')
       
-      // НЕ блокируем header и BoardSelector - там должны работать клики
-      if (sidebar) {
+      // Также проверяем, что это НЕ клик в области доски (чтобы не блокировать drag-and-drop на доске)
+      const boardContainer = boardContainerId ? document.getElementById(boardContainerId) : null
+      const isInBoard = boardContainer && boardContainer.contains(target)
+      
+      // Блокируем только сайдбар И если это не доска
+      if (sidebar && !isInBoard) {
         // КРИТИЧНО: останавливаем ДО того, как событие дойдет до DndContext
         e.stopImmediatePropagation()
         // НЕ используем preventDefault - это блокирует клики
+      }
+      
+      // Также разрешаем клики в header, links, buttons вне доски
+      const isLink = target.closest('a')
+      const isButton = target.closest('button')
+      const isHeader = target.closest('header')
+      
+      // Если это клик на ссылку или кнопку в header и НЕ в доске - разрешаем
+      if ((isLink || isButton) && isHeader && !isInBoard) {
+        e.stopImmediatePropagation()
       }
     }
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
-      // Проверяем, клик ли это в сайдбаре (ТОЛЬКО aside)
+      // Проверяем, клик ли это в сайдбаре
       const sidebar = target.closest('aside')
       
-      // НЕ блокируем header и BoardSelector - там должны работать клики
-      if (sidebar) {
+      // Также проверяем, что это НЕ клик в области доски
+      const boardContainer = boardContainerId ? document.getElementById(boardContainerId) : null
+      const isInBoard = boardContainer && boardContainer.contains(target)
+      
+      // Блокируем только сайдбар И если это не доска
+      if (sidebar && !isInBoard) {
+        e.stopImmediatePropagation()
+      }
+      
+      // Также разрешаем клики в header, links, buttons вне доски
+      const isLink = target.closest('a')
+      const isButton = target.closest('button')
+      const isHeader = target.closest('header')
+      
+      // Если это клик на ссылку или кнопку в header и НЕ в доске - разрешаем
+      if ((isLink || isButton) && isHeader && !isInBoard) {
         e.stopImmediatePropagation()
       }
     }
