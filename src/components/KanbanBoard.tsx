@@ -479,6 +479,7 @@ export function KanbanBoard({
     >
       <div className="h-full w-full overflow-x-auto overflow-y-hidden pointer-events-auto">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
+        {/* DndContext временно отключён для диагностики */}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -557,7 +558,7 @@ export function KanbanBoard({
             )}
           </SortableContext>
 
-          <DragOverlay>
+          <DragOverlay zIndex={50} dropAnimation={null}>
             {activeTask && (
               <TaskCard
                 task={activeTask}
