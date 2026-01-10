@@ -124,8 +124,32 @@ export function KanbanBoard({
     const activeId = active.id as string
     const overId = over.id as string
 
-    // Для столбцов не обновляем состояние в handleDragOver
-    // Визуальное перемещение обрабатывается @dnd-kit автоматически
+    // Если перетаскиваем столбец - обновляем визуально (оптимистично)
+    const activeColumnDrag = columns.find((c) => c.id === activeId)
+    if (activeColumnDrag && isDraggingColumn) {
+      const overColumn = columns.find((c) => c.id === overId)
+      if (overColumn && activeColumnDrag.id !== overColumn.id) {
+        // Обновляем позиции только визуально (оптимистично)
+        setColumns((prev) => {
+          const sorted = [...prev].sort((a, b) => a.position - b.position)
+          const activeIdx = sorted.findIndex((c) => c.id === activeId)
+          const overIdx = sorted.findIndex((c) => c.id === overId)
+          
+          if (activeIdx !== -1 && overIdx !== -1 && activeIdx !== overIdx) {
+            const [removed] = sorted.splice(activeIdx, 1)
+            sorted.splice(overIdx, 0, removed)
+            
+            // Обновляем позиции визуально (они будут пересчитаны в handleDragEnd)
+            return sorted.map((col, index) => ({
+              ...col,
+              position: index,
+            }))
+          }
+          return prev
+        })
+      }
+      return
+    }
     
     // Если перетаскиваем задачу
     const activeTask = tasks.find((t) => t.id === activeId)
