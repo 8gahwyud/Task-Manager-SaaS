@@ -108,6 +108,7 @@ export function KanbanBoard({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
+    
     // Проверяем, это задача или столбец
     const task = tasks.find((t) => t.id === active.id)
     if (task) {
@@ -407,6 +408,7 @@ export function KanbanBoard({
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
+          autoScroll={false}
         >
           <SortableContext
             items={columns.map((c) => c.id)}
