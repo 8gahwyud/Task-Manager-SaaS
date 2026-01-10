@@ -13,6 +13,49 @@ import {
   DragEndEvent,
   DragOverEvent,
 } from '@dnd-kit/core'
+
+// Кастомный PointerSensor, который активируется только внутри доски
+class BoardPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }) => {
+        const target = event.target as HTMLElement
+        
+        // НЕ активируем drag если клик в сайдбаре
+        if (target.closest('aside')) {
+          return false
+        }
+        
+        // НЕ активируем drag если клик в header
+        if (target.closest('header')) {
+          return false
+        }
+        
+        // НЕ активируем drag если клик на элементе с data-no-dnd-block
+        if (target.closest('[data-no-dnd-block]')) {
+          return false
+        }
+        
+        // НЕ активируем drag если клик на интерактивном элементе (кроме draggable)
+        if (target.closest('a') || target.closest('button:not([data-dnd-handle])') || target.closest('input') || target.closest('select') || target.closest('textarea')) {
+          // Разрешаем только если это часть draggable элемента
+          if (!target.closest('[data-dnd-handle]') && !target.closest('[draggable="true"]')) {
+            return false
+          }
+        }
+        
+        // Проверяем, что клик внутри доски
+        const board = target.closest('[data-board-container]')
+        if (!board) {
+          return false
+        }
+        
+        return true
+      },
+    },
+  ]
+}
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -88,8 +131,9 @@ export function KanbanBoard({
     color: '#8993a4',
   })
 
+  // Используем кастомный BoardPointerSensor, который активируется только внутри доски
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(BoardPointerSensor, {
       activationConstraint: {
         distance: 5,
       },
@@ -426,9 +470,10 @@ export function KanbanBoard({
   }
 
   return (
-    <div 
-      ref={boardContainerRef} 
+    <div
+      ref={boardContainerRef}
       id={`board-${boardId}`}
+      data-board-container
       className="h-full w-full overflow-hidden relative" 
       style={boardStyle}
     >
