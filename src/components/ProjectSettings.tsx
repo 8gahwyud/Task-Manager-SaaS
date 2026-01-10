@@ -129,7 +129,9 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
         throw new Error(data.error || 'Ошибка при загрузке')
       }
 
+      const updated = await res.json()
       toast.success('Фон обновлён')
+      // Обновляем локальное состояние проекта с новым фоном
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Ошибка')
@@ -227,6 +229,28 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Изображение фона
               </label>
+              
+              {/* Текущее изображение */}
+              {project.backgroundImage && (
+                <div className="mb-3 relative group">
+                  <div className="w-full h-32 rounded-lg overflow-hidden border border-gray-200 relative">
+                    <img
+                      src={project.backgroundImage}
+                      alt="Фон проекта"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        Текущий фон
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <label className="relative inline-flex items-center justify-center px-4 py-2.5 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 hover:border-accent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full">
                 <input
                   type="file"
@@ -246,7 +270,9 @@ export function ProjectSettings({ project, members, isOwner }: ProjectSettingsPr
                       <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                       </svg>
-                      <span className="text-sm font-medium text-gray-700">Выбрать файл</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {project.backgroundImage ? 'Изменить файл' : 'Выбрать файл'}
+                      </span>
                     </>
                   )}
                 </div>
