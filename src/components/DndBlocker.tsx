@@ -10,13 +10,11 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
     const handlePointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement
       
-      // Проверяем, клик ли это в сайдбаре, header или элементе с data-no-dnd-block
+      // Проверяем, клик ли это в сайдбаре (ТОЛЬКО aside, не header/BoardSelector)
       const sidebar = target.closest('aside')
-      const header = target.closest('header')
-      const noDnd = target.closest('[data-no-dnd-block]')
-      const nav = target.closest('nav')
       
-      if (sidebar || header || noDnd || nav) {
+      // НЕ блокируем header и BoardSelector - там должны работать клики
+      if (sidebar) {
         // КРИТИЧНО: останавливаем ДО того, как событие дойдет до DndContext
         e.stopImmediatePropagation()
         // НЕ используем preventDefault - это блокирует клики
@@ -26,12 +24,11 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       
+      // Проверяем, клик ли это в сайдбаре (ТОЛЬКО aside)
       const sidebar = target.closest('aside')
-      const header = target.closest('header')
-      const noDnd = target.closest('[data-no-dnd-block]')
-      const nav = target.closest('nav')
       
-      if (sidebar || header || noDnd || nav) {
+      // НЕ блокируем header и BoardSelector - там должны работать клики
+      if (sidebar) {
         e.stopImmediatePropagation()
       }
     }
