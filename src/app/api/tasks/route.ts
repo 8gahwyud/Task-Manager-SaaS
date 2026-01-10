@@ -7,11 +7,11 @@ import { z } from 'zod'
 const taskSchema = z.object({
   title: z.string().min(1, 'Название обязательно'),
   description: z.string().optional(),
-  projectId: z.string().min(1, 'Проект обязателен'),
+  boardId: z.string().min(1, 'Доска обязательна'),
+  columnId: z.string().min(1, 'Столбец обязателен'),
   assigneeId: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-  status: z.enum(['todo', 'in_progress', 'review', 'done']).default('todo'),
 })
 
 // Создать задачу
@@ -26,29 +26,48 @@ export async function POST(request: Request) {
     const body = await request.json()
     const data = taskSchema.parse(body)
 
-    // Проверяем доступ к проекту
-    const project = await prisma.project.findFirst({
+    // Проверяем доступ к доске
+    const board = await prisma.board.findFirst({
       where: {
-        id: data.projectId,
-        OR: [
-          { ownerId: session.user.id },
-          { members: { some: { userId: session.user.id } } },
-        ],
+        id: data.boardId,
+        project: {
+          OR: [
+            { ownerId: session.user.id },
+            { members: { some: { userId: session.user.id } } },
+          ],
+        },
+      },
+      include: {
+        project: { select: { id: true } },
       },
     })
 
-    if (!project) {
+    if (!board) {
       return NextResponse.json(
-        { error: 'Проект не найден или нет доступа' },
+        { error: 'Доска не найдена или нет доступа' },
         { status: 404 }
       )
     }
 
-    // Получаем максимальную позицию для статуса
+    // Проверяем, что столбец принадлежит этой доске
+    const column = await prisma.boardColumn.findFirst({
+      where: {
+        id: data.columnId,
+        boardId: data.boardId,
+      },
+    })
+
+    if (!column) {
+      return NextResponse.json(
+        { error: 'Столбец не найден или не принадлежит этой доске' },
+        { status: 404 }
+      )
+    }
+
+    // Получаем максимальную позицию для столбца
     const maxPosition = await prisma.task.aggregate({
       where: {
-        projectId: data.projectId,
-        status: data.status,
+        columnId: data.columnId,
       },
       _max: { position: true },
     })
@@ -57,11 +76,11 @@ export async function POST(request: Request) {
       data: {
         title: data.title,
         description: data.description,
-        projectId: data.projectId,
+        boardId: data.boardId,
+        columnId: data.columnId,
         assigneeId: data.assigneeId || null,
         deadline: data.deadline ? new Date(data.deadline) : null,
         priority: data.priority,
-        status: data.status,
         position: (maxPosition._max.position ?? -1) + 1,
         creatorId: session.user.id,
       },
@@ -71,6 +90,12 @@ export async function POST(request: Request) {
         },
         creator: {
           select: { id: true, name: true, email: true },
+        },
+        column: {
+          select: { id: true, name: true, color: true },
+        },
+        board: {
+          select: { id: true, name: true, projectId: true },
         },
       },
     })
@@ -90,5 +115,6 @@ export async function POST(request: Request) {
     )
   }
 }
+
 
 

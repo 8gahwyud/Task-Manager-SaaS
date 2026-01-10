@@ -36,8 +36,10 @@ export async function GET() {
             },
           },
         },
-        _count: {
-          select: { tasks: true },
+        boards: {
+          include: {
+            _count: { select: { tasks: true } },
+          },
         },
       },
       orderBy: { updatedAt: 'desc' },
@@ -104,5 +106,6 @@ export async function POST(request: Request) {
     )
   }
 }
+
 
 

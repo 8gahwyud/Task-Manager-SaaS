@@ -9,22 +9,30 @@ export default async function AnalyticsPage() {
   // Get all tasks for user's projects
   const tasks = await prisma.task.findMany({
     where: {
-      project: {
-        OR: [
-          { ownerId: session!.user.id },
-          { members: { some: { userId: session!.user.id } } },
-        ],
+      board: {
+        project: {
+          OR: [
+            { ownerId: session!.user.id },
+            { members: { some: { userId: session!.user.id } } },
+          ],
+        },
       },
     },
     include: {
-      project: { select: { name: true } },
+      board: {
+        include: {
+          project: { select: { name: true } },
+        },
+      },
       assignee: { select: { name: true } },
+      column: { select: { name: true } },
     },
   })
 
-  // Stats by status
+  // Stats by status (column name)
   const statsByStatus = tasks.reduce((acc, task) => {
-    acc[task.status] = (acc[task.status] || 0) + 1
+    const status = task.column.name
+    acc[status] = (acc[status] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
@@ -36,14 +44,14 @@ export default async function AnalyticsPage() {
 
   // Stats by project
   const statsByProject = tasks.reduce((acc, task) => {
-    acc[task.project.name] = (acc[task.project.name] || 0) + 1
+    acc[task.board.project.name] = (acc[task.board.project.name] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
   // Overdue tasks
   const now = new Date()
   const overdueTasks = tasks.filter(
-    (t) => t.deadline && new Date(t.deadline) < now && t.status !== 'done'
+    (t) => t.deadline && new Date(t.deadline) < now && !t.column.name.toLowerCase().includes('done')
   )
 
   // Tasks created last 7 days
@@ -53,14 +61,17 @@ export default async function AnalyticsPage() {
 
   // Completed this week
   const completedThisWeek = tasks.filter(
-    (t) => t.status === 'done' && new Date(t.updatedAt) >= last7Days
+    (t) => t.column.name.toLowerCase().includes('done') && new Date(t.updatedAt) >= last7Days
   )
 
+  // Map column names to labels
   const statusLabels: Record<string, string> = {
-    todo: 'To Do',
-    in_progress: 'In Progress',
-    review: 'Review',
-    done: 'Done',
+    'to do': 'To Do',
+    'todo': 'To Do',
+    'in progress': 'In Progress',
+    'in_progress': 'In Progress',
+    'review': 'Review',
+    'done': 'Done',
   }
 
   const priorityLabels: Record<string, string> = {
@@ -148,21 +159,24 @@ export default async function AnalyticsPage() {
           <div className="space-y-4">
             {Object.entries(statsByStatus).map(([status, count]) => {
               const percentage = tasks.length > 0 ? (count / tasks.length) * 100 : 0
+              const statusLower = status.toLowerCase()
               const colors: Record<string, string> = {
-                todo: 'bg-status-todo',
-                in_progress: 'bg-status-progress',
-                review: 'bg-status-review',
-                done: 'bg-status-done',
+                'to do': 'bg-status-todo',
+                'todo': 'bg-status-todo',
+                'in progress': 'bg-status-progress',
+                'in_progress': 'bg-status-progress',
+                'review': 'bg-status-review',
+                'done': 'bg-status-done',
               }
               return (
                 <div key={status}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-700">{statusLabels[status] || status}</span>
+                    <span className="text-sm text-gray-700">{statusLabels[statusLower] || status}</span>
                     <span className="text-sm text-gray-600">{count} ({percentage.toFixed(0)}%)</span>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${colors[status] || 'bg-accent'}`}
+                      className={`h-full rounded-full ${colors[statusLower] || 'bg-accent'}`}
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -236,7 +250,7 @@ export default async function AnalyticsPage() {
                 <div>
                   <p className="font-medium text-gray-900">{task.title}</p>
                   <p className="text-sm text-gray-600">
-                    {task.project.name}
+                    {task.board.project.name}
                     {task.assignee && ` • ${task.assignee.name}`}
                   </p>
                 </div>
@@ -256,5 +270,6 @@ export default async function AnalyticsPage() {
     </div>
   )
 }
+
 
 

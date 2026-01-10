@@ -10,7 +10,7 @@ const updateSchema = z.object({
   assigneeId: z.string().optional().nullable(),
   deadline: z.string().optional().nullable(),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  status: z.enum(['todo', 'in_progress', 'review', 'done']).optional(),
+  columnId: z.string().optional(),
   position: z.number().optional(),
 })
 
@@ -29,11 +29,13 @@ export async function GET(
     const task = await prisma.task.findFirst({
       where: {
         id: params.id,
-        project: {
-          OR: [
-            { ownerId: session.user.id },
-            { members: { some: { userId: session.user.id } } },
-          ],
+        board: {
+          project: {
+            OR: [
+              { ownerId: session.user.id },
+              { members: { some: { userId: session.user.id } } },
+            ],
+          },
         },
       },
       include: {
@@ -43,8 +45,16 @@ export async function GET(
         creator: {
           select: { id: true, name: true, email: true },
         },
-        project: {
-          select: { id: true, name: true },
+        column: {
+          select: { id: true, name: true, color: true },
+        },
+        board: {
+          select: { id: true, name: true, projectId: true },
+          include: {
+            project: {
+              select: { id: true, name: true },
+            },
+          },
         },
       },
     })
@@ -77,11 +87,13 @@ export async function PATCH(
     const task = await prisma.task.findFirst({
       where: {
         id: params.id,
-        project: {
-          OR: [
-            { ownerId: session.user.id },
-            { members: { some: { userId: session.user.id } } },
-          ],
+        board: {
+          project: {
+            OR: [
+              { ownerId: session.user.id },
+              { members: { some: { userId: session.user.id } } },
+            ],
+          },
         },
       },
     })
@@ -96,13 +108,12 @@ export async function PATCH(
     const body = await request.json()
     const data = updateSchema.parse(body)
 
-    // Если меняется статус, обновляем позицию
+    // Если меняется столбец, обновляем позицию
     let position = data.position
-    if (data.status && data.status !== task.status && position === undefined) {
+    if (data.columnId && data.columnId !== task.columnId && position === undefined) {
       const maxPosition = await prisma.task.aggregate({
         where: {
-          projectId: task.projectId,
-          status: data.status,
+          columnId: data.columnId,
         },
         _max: { position: true },
       })
@@ -122,6 +133,12 @@ export async function PATCH(
         },
         creator: {
           select: { id: true, name: true, email: true },
+        },
+        column: {
+          select: { id: true, name: true, color: true },
+        },
+        board: {
+          select: { id: true, name: true, projectId: true },
         },
       },
     })
@@ -156,11 +173,13 @@ export async function DELETE(
     const task = await prisma.task.findFirst({
       where: {
         id: params.id,
-        project: {
-          OR: [
-            { ownerId: session.user.id },
-            { members: { some: { userId: session.user.id } } },
-          ],
+        board: {
+          project: {
+            OR: [
+              { ownerId: session.user.id },
+              { members: { some: { userId: session.user.id } } },
+            ],
+          },
         },
       },
     })
@@ -184,5 +203,6 @@ export async function DELETE(
     )
   }
 }
+
 
 

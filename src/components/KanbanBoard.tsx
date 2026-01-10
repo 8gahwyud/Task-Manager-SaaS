@@ -16,11 +16,13 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import toast from 'react-hot-toast'
 import { KanbanColumn } from './KanbanColumn'
 import { TaskCard } from './TaskCard'
 import { CreateTaskButton } from './CreateTaskButton'
+import { Modal } from './Modal'
 
 interface Member {
   id: string
@@ -28,11 +30,18 @@ interface Member {
   email: string
 }
 
+interface Column {
+  id: string
+  name: string
+  color: string
+  position: number
+}
+
 interface Task {
   id: string
   title: string
   description: string | null
-  status: string
+  columnId: string
   priority: string
   deadline: Date | null
   position: number
@@ -41,21 +50,36 @@ interface Task {
 }
 
 interface KanbanBoardProps {
+  boardId: string
   projectId: string
   initialTasks: Task[]
+  initialColumns: Column[]
   members: Member[]
+  backgroundImage?: string | null
+  backgroundColor?: string | null
+  isOwner?: boolean
 }
 
-const STATUSES = [
-  { id: 'todo', label: 'To Do', color: 'bg-status-todo' },
-  { id: 'in_progress', label: 'In Progress', color: 'bg-status-progress' },
-  { id: 'review', label: 'Review', color: 'bg-status-review' },
-  { id: 'done', label: 'Done', color: 'bg-status-done' },
-]
-
-export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardProps) {
+export function KanbanBoard({
+  boardId,
+  projectId,
+  initialTasks,
+  initialColumns,
+  members,
+  backgroundImage,
+  backgroundColor,
+  isOwner = false,
+}: KanbanBoardProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [columns, setColumns] = useState<Column[]>(initialColumns)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null)
+  const [showCreateColumnModal, setShowCreateColumnModal] = useState(false)
+  const [isCreatingColumn, setIsCreatingColumn] = useState(false)
+  const [columnFormData, setColumnFormData] = useState({
+    name: '',
+    color: '#8993a4',
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -66,19 +90,28 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
     useSensor(KeyboardSensor)
   )
 
-  const tasksByStatus = useMemo(() => {
-    return STATUSES.reduce((acc, status) => {
-      acc[status.id] = tasks
-        .filter((t) => t.status === status.id)
+  const tasksByColumn = useMemo(() => {
+    return columns.reduce((acc, column) => {
+      acc[column.id] = tasks
+        .filter((t) => t.columnId === column.id)
         .sort((a, b) => a.position - b.position)
       return acc
     }, {} as Record<string, Task[]>)
-  }, [tasks])
+  }, [tasks, columns])
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
+    // Проверяем, это задача или столбец
     const task = tasks.find((t) => t.id === active.id)
-    if (task) setActiveTask(task)
+    if (task) {
+      setActiveTask(task)
+      return
+    }
+    
+    const column = columns.find((c) => c.id === active.id)
+    if (column) {
+      setActiveColumn(column)
+    }
   }
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -88,15 +121,41 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
     const activeId = active.id as string
     const overId = over.id as string
 
+    // Если перетаскиваем столбец
+    const activeColumnDrag = columns.find((c) => c.id === activeId)
+    if (activeColumnDrag) {
+      const overColumn = columns.find((c) => c.id === overId)
+      if (overColumn && activeColumnDrag.id !== overColumn.id) {
+        // Обновляем порядок столбцов
+        const newColumns = [...columns]
+        const activeIndex = newColumns.findIndex((c) => c.id === activeId)
+        const overIndex = newColumns.findIndex((c) => c.id === overId)
+        
+        if (activeIndex !== -1 && overIndex !== -1) {
+          const [removed] = newColumns.splice(activeIndex, 1)
+          newColumns.splice(overIndex, 0, removed)
+          
+          // Обновляем позиции
+          const updatedColumns = newColumns.map((col, index) => ({
+            ...col,
+            position: index,
+          }))
+          setColumns(updatedColumns)
+        }
+      }
+      return
+    }
+
+    // Если перетаскиваем задачу
     const activeTask = tasks.find((t) => t.id === activeId)
     if (!activeTask) return
 
     // Check if we're over a column
-    const overStatus = STATUSES.find((s) => s.id === overId)
-    if (overStatus && activeTask.status !== overStatus.id) {
+    const overColumn = columns.find((c) => c.id === overId)
+    if (overColumn && activeTask.columnId !== overColumn.id) {
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === activeId ? { ...t, status: overStatus.id } : t
+          t.id === activeId ? { ...t, columnId: overColumn.id } : t
         )
       )
       return
@@ -104,10 +163,10 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
 
     // Check if we're over another task
     const overTask = tasks.find((t) => t.id === overId)
-    if (overTask && activeTask.status !== overTask.status) {
+    if (overTask && activeTask.columnId !== overTask.columnId) {
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === activeId ? { ...t, status: overTask.status } : t
+          t.id === activeId ? { ...t, columnId: overTask.columnId } : t
         )
       )
     }
@@ -116,35 +175,91 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveTask(null)
+    setActiveColumn(null)
 
-    if (!over) return
+    if (!over) {
+      // Если упали не на цель - откатываем изменения
+      if (columns.find((c) => c.id === active.id)) {
+        setColumns(initialColumns)
+      } else {
+        setTasks(initialTasks)
+      }
+      return
+    }
 
     const activeId = active.id as string
     const overId = over.id as string
 
+    // Если перетаскиваем столбец
+    const activeColumnDrag = columns.find((c) => c.id === activeId)
+    if (activeColumnDrag) {
+      const overColumn = columns.find((c) => c.id === overId)
+      if (!overColumn || activeColumnDrag.id === overColumn.id) {
+        setColumns(initialColumns)
+        return
+      }
+
+      // Обновляем позиции столбцов на сервере
+      const newColumns = [...columns]
+      const activeIndex = newColumns.findIndex((c) => c.id === activeId)
+      const overIndex = newColumns.findIndex((c) => c.id === overId)
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const [removed] = newColumns.splice(activeIndex, 1)
+        newColumns.splice(overIndex, 0, removed)
+
+        // Обновляем позиции
+        const updatedColumns = newColumns.map((col, index) => ({
+          ...col,
+          position: index,
+        }))
+
+        // Отправляем обновления на сервер для каждого столбца
+        try {
+          await Promise.all(
+            updatedColumns.map((col, index) =>
+              fetch(`/api/columns/${col.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ position: index }),
+              })
+            )
+          )
+
+          setColumns(updatedColumns)
+          toast.success('Порядок столбцов обновлён')
+        } catch {
+          toast.error('Ошибка при обновлении порядка столбцов')
+          setColumns(initialColumns)
+        }
+      }
+      return
+    }
+
+    // Если перетаскиваем задачу
     const activeTask = tasks.find((t) => t.id === activeId)
     if (!activeTask) return
 
-    // Determine the new status
-    let newStatus = activeTask.status
-    const overStatus = STATUSES.find((s) => s.id === overId)
-    if (overStatus) {
-      newStatus = overStatus.id
+    // Determine the new column
+    let newColumnId = activeTask.columnId
+    const overColumn = columns.find((c) => c.id === overId)
+    if (overColumn) {
+      newColumnId = overColumn.id
     } else {
       const overTask = tasks.find((t) => t.id === overId)
       if (overTask) {
-        newStatus = overTask.status
+        newColumnId = overTask.columnId
       }
     }
 
     // Calculate new position
     const tasksInColumn = tasks
-      .filter((t) => t.status === newStatus && t.id !== activeId)
+      .filter((t) => t.columnId === newColumnId && t.id !== activeId)
       .sort((a, b) => a.position - b.position)
 
     let newPosition = 0
     const overTask = tasks.find((t) => t.id === overId)
-    if (overTask && overId !== newStatus) {
+    if (overTask && overId !== newColumnId) {
       const overIndex = tasksInColumn.findIndex((t) => t.id === overId)
       newPosition = overIndex >= 0 ? overIndex : tasksInColumn.length
     } else {
@@ -155,7 +270,7 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
     setTasks((prev) =>
       prev.map((t) =>
         t.id === activeId
-          ? { ...t, status: newStatus, position: newPosition }
+          ? { ...t, columnId: newColumnId, position: newPosition }
           : t
       )
     )
@@ -166,7 +281,7 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: newStatus,
+          columnId: newColumnId,
           position: newPosition,
         }),
       })
@@ -195,9 +310,47 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
     setTasks((prev) => prev.filter((t) => t.id !== taskId))
   }
 
+  const handleCreateColumn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsCreatingColumn(true)
+
+    try {
+      const res = await fetch(`/api/boards/${boardId}/columns`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(columnFormData),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Ошибка при создании столбца')
+      }
+
+      const newColumn = await res.json()
+      setColumns((prev) => [...prev, newColumn].sort((a, b) => a.position - b.position))
+      toast.success('Столбец создан')
+      setShowCreateColumnModal(false)
+      setColumnFormData({ name: '', color: '#8993a4' })
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Ошибка')
+    } finally {
+      setIsCreatingColumn(false)
+    }
+  }
+
+  // Фон доски
+  const boardStyle: React.CSSProperties = {}
+  if (backgroundImage) {
+    boardStyle.backgroundImage = `url(${backgroundImage})`
+    boardStyle.backgroundSize = 'cover'
+    boardStyle.backgroundPosition = 'center'
+  } else if (backgroundColor) {
+    boardStyle.backgroundColor = backgroundColor
+  }
+
   return (
-    <div className="h-full p-6 overflow-x-auto">
-      <div className="flex gap-4 min-w-max h-full">
+    <div className="h-full overflow-x-auto" style={boardStyle}>
+      <div className="p-6">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -205,36 +358,77 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          {STATUSES.map((status) => (
-            <SortableContext
-              key={status.id}
-              items={tasksByStatus[status.id].map((t) => t.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <KanbanColumn
-                id={status.id}
-                title={status.label}
-                color={status.color}
-                count={tasksByStatus[status.id].length}
-              >
-                {tasksByStatus[status.id].map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    members={members}
-                    onUpdate={handleTaskUpdated}
-                    onDelete={handleTaskDeleted}
-                  />
-                ))}
-                <CreateTaskButton
-                  projectId={projectId}
-                  status={status.id}
-                  members={members}
-                  onCreated={handleTaskCreated}
-                />
-              </KanbanColumn>
-            </SortableContext>
-          ))}
+          <SortableContext
+            items={columns.map((c) => c.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex gap-4 min-w-max h-full">
+              {columns
+                .sort((a, b) => a.position - b.position)
+                .map((column) => (
+                <SortableContext
+                  key={column.id}
+                  items={tasksByColumn[column.id]?.map((t) => t.id) || []}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <KanbanColumn
+                    id={column.id}
+                    title={column.name}
+                    color={column.color}
+                    count={tasksByColumn[column.id]?.length || 0}
+                    boardId={boardId}
+                    isOwner={isOwner}
+                    onColumnUpdate={async () => {
+                      const res = await fetch(`/api/boards/${boardId}`)
+                      if (res.ok) {
+                        const updatedBoard = await res.json()
+                        setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
+                      }
+                    }}
+                    onColumnDelete={async () => {
+                      const res = await fetch(`/api/boards/${boardId}`)
+                      if (res.ok) {
+                        const updatedBoard = await res.json()
+                        setColumns(updatedBoard.columns.sort((a: Column, b: Column) => a.position - b.position))
+                      }
+                    }}
+                  >
+                    {tasksByColumn[column.id]?.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        members={members}
+                        onUpdate={handleTaskUpdated}
+                        onDelete={handleTaskDeleted}
+                      />
+                    ))}
+                    <CreateTaskButton
+                      boardId={boardId}
+                      projectId={projectId}
+                      columnId={column.id}
+                      members={members}
+                      onCreated={handleTaskCreated}
+                    />
+                  </KanbanColumn>
+                </SortableContext>
+              ))}
+
+              {/* Create Column Button */}
+              {isOwner && (
+                <div className="w-80 flex-shrink-0">
+                  <button
+                    onClick={() => setShowCreateColumnModal(true)}
+                    className="w-full h-16 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Добавить столбец
+                  </button>
+                </div>
+              )}
+            </div>
+          </SortableContext>
 
           <DragOverlay>
             {activeTask && (
@@ -246,11 +440,72 @@ export function KanbanBoard({ projectId, initialTasks, members }: KanbanBoardPro
                 isDragging
               />
             )}
+            {activeColumn && (
+              <div className="w-80 flex-shrink-0 bg-white border border-gray-200 rounded-lg p-4 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: activeColumn.color }}
+                  />
+                  <h3 className="font-semibold text-gray-900">{activeColumn.name}</h3>
+                </div>
+              </div>
+            )}
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Create Column Modal */}
+      <Modal
+        isOpen={showCreateColumnModal}
+        onClose={() => setShowCreateColumnModal(false)}
+        title="Создать столбец"
+      >
+        <form onSubmit={handleCreateColumn} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Название столбца
+            </label>
+            <input
+              type="text"
+              required
+              className="input-field"
+              placeholder="Название столбца"
+              value={columnFormData.name}
+              onChange={(e) => setColumnFormData({ ...columnFormData, name: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Цвет
+            </label>
+            <input
+              type="color"
+              className="w-full h-10 rounded border border-gray-300"
+              value={columnFormData.color}
+              onChange={(e) => setColumnFormData({ ...columnFormData, color: e.target.value })}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowCreateColumnModal(false)}
+              className="btn-secondary flex-1"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={isCreatingColumn || !columnFormData.name.trim()}
+              className="btn-primary flex-1 disabled:opacity-50"
+            >
+              {isCreatingColumn ? 'Создание...' : 'Создать'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
-
-

@@ -17,35 +17,83 @@ export default async function DashboardPage() {
         ],
       },
       include: {
-        _count: { select: { tasks: true } },
+        boards: {
+          include: {
+            _count: { select: { tasks: true } },
+          },
+        },
       },
       take: 5,
       orderBy: { updatedAt: 'desc' },
     }),
     prisma.task.findMany({
       where: {
-        status: { not: 'done' },
         OR: [
           { assigneeId: session!.user.id },
           { assigneeId: null },
         ],
-        project: {
-          OR: [
-            { ownerId: session!.user.id },
-            { members: { some: { userId: session!.user.id } } },
-          ],
+        board: {
+          project: {
+            OR: [
+              { ownerId: session!.user.id },
+              { members: { some: { userId: session!.user.id } } },
+            ],
+          },
+        },
+        column: {
+          name: { not: { equals: 'Done' } },
         },
       },
       include: {
-        project: { select: { id: true, name: true } },
+        board: {
+          include: {
+            project: { select: { id: true, name: true } },
+          },
+        },
         assignee: { select: { name: true } },
+        column: { select: { id: true, name: true, color: true } },
       },
       take: 5,
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.task.groupBy({
-      by: ['status'],
+    prisma.task.findMany({
       where: {
+        board: {
+          project: {
+            OR: [
+              { ownerId: session!.user.id },
+              { members: { some: { userId: session!.user.id } } },
+            ],
+          },
+        },
+      },
+      include: {
+        column: { select: { name: true } },
+      },
+    }),
+  ])
+
+  // Группируем задачи по статусу (название столбца)
+  const tasksByStatus = stats.reduce((acc, task) => {
+    const status = task.column.name.toLowerCase()
+    acc[status] = (acc[status] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const totalTasks = stats.length
+  const doneTasks = Object.entries(tasksByStatus)
+    .filter(([status]) => status.toLowerCase().includes('done'))
+    .reduce((acc, [, count]) => acc + count, 0)
+  const inProgressTasks = Object.entries(tasksByStatus)
+    .filter(([status]) => 
+      status.toLowerCase().includes('progress') || 
+      status.toLowerCase().includes('в работе')
+    )
+    .reduce((acc, [, count]) => acc + count, 0)
+
+  const overdueTasks = await prisma.task.count({
+    where: {
+      board: {
         project: {
           OR: [
             { ownerId: session!.user.id },
@@ -53,33 +101,13 @@ export default async function DashboardPage() {
           ],
         },
       },
-      _count: true,
-    }),
-  ])
-
-  const totalTasks = stats.reduce((acc, s) => acc + s._count, 0)
-  const doneTasks = stats.find((s) => s.status === 'done')?._count || 0
-  const inProgressTasks = stats.find((s) => s.status === 'in_progress')?._count || 0
-
-  const overdueTasks = await prisma.task.count({
-    where: {
-      project: {
-        OR: [
-          { ownerId: session!.user.id },
-          { members: { some: { userId: session!.user.id } } },
-        ],
-      },
       deadline: { lt: new Date() },
-      status: { not: 'done' },
+      column: {
+        name: { not: { equals: 'Done' } },
+      },
     },
   })
 
-  const statusColors: Record<string, string> = {
-    todo: 'bg-status-todo',
-    in_progress: 'bg-status-progress',
-    review: 'bg-status-review',
-    done: 'bg-status-done',
-  }
 
   const priorityColors: Record<string, string> = {
     urgent: 'text-priority-urgent',
@@ -203,7 +231,7 @@ export default async function DashboardPage() {
                           {project.name}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {project._count.tasks} задач
+                          {project.boards.reduce((acc: number, board) => acc + board._count.tasks, 0)} задач
                         </p>
                       </div>
                     </div>
@@ -236,17 +264,20 @@ export default async function DashboardPage() {
               {recentTasks.map((task) => (
                 <li key={task.id}>
                   <Link
-                    href={`/projects/${task.project.id}`}
+                    href={`/projects/${task.board.project.id}`}
                     className="block p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${statusColors[task.status]}`} />
+                      <div 
+                        className="w-2 h-2 rounded-full mt-2"
+                        style={{ backgroundColor: task.column?.color || '#8993a4' }}
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 truncate group-hover:text-accent transition-colors">
                           {task.title}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-600">{task.project.name}</span>
+                          <span className="text-xs text-gray-600">{task.board.project.name}</span>
                           <span className={`text-xs font-medium ${priorityColors[task.priority]}`}>
                             {task.priority === 'urgent' && '🔴'}
                             {task.priority === 'high' && '🟠'}

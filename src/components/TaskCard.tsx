@@ -19,7 +19,7 @@ interface Task {
   id: string
   title: string
   description: string | null
-  status: string
+  columnId: string
   priority: string
   deadline: Date | null
   position: number
@@ -69,8 +69,8 @@ export function TaskCard({ task, members, onUpdate, onDelete, isDragging }: Task
 
   const priority = priorityConfig[task.priority]
   const deadline = task.deadline ? new Date(task.deadline) : null
-  const isOverdue = deadline && isPast(deadline) && task.status !== 'done'
-  const isDueToday = deadline && isToday(deadline) && task.status !== 'done'
+  const isOverdue = deadline && isPast(deadline) && task.columnId !== 'done'
+  const isDueToday = deadline && isToday(deadline) && task.columnId !== 'done'
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()

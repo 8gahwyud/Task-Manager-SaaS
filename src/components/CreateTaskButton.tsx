@@ -14,7 +14,7 @@ interface Task {
   id: string
   title: string
   description: string | null
-  status: string
+  columnId: string
   priority: string
   deadline: Date | null
   position: number
@@ -23,13 +23,14 @@ interface Task {
 }
 
 interface CreateTaskButtonProps {
+  boardId: string
   projectId: string
-  status: string
+  columnId: string
   members: Member[]
   onCreated: (task: Task) => void
 }
 
-export function CreateTaskButton({ projectId, status, members, onCreated }: CreateTaskButtonProps) {
+export function CreateTaskButton({ boardId, projectId, columnId, members, onCreated }: CreateTaskButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -51,8 +52,8 @@ export function CreateTaskButton({ projectId, status, members, onCreated }: Crea
         body: JSON.stringify({
           title: formData.title,
           description: formData.description || undefined,
-          projectId,
-          status,
+          boardId,
+          columnId,
           priority: formData.priority,
           assigneeId: formData.assigneeId || undefined,
           deadline: formData.deadline || undefined,

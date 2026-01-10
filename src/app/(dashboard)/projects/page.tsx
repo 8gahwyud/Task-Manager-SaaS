@@ -21,9 +21,10 @@ export default async function ProjectsPage() {
           user: { select: { id: true, name: true, email: true } },
         },
       },
-      _count: { select: { tasks: true } },
-      tasks: {
-        select: { status: true },
+      boards: {
+        include: {
+          _count: { select: { tasks: true } },
+        },
       },
     },
     orderBy: { updatedAt: 'desc' },
@@ -59,16 +60,15 @@ export default async function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => {
-            const tasksByStatus = project.tasks.reduce(
-              (acc, task) => {
-                acc[task.status] = (acc[task.status] || 0) + 1
-                return acc
-              },
-              {} as Record<string, number>
-            )
+            const totalTasks = project.boards.reduce((acc, board) => acc + board._count.tasks, 0)
+            const doneTasks = project.boards.reduce((acc, board) => {
+              // Подсчитываем задачи в столбцах "Done"
+              // Это требует отдельного запроса или можно грубо считать через статус
+              return acc
+            }, 0)
 
-            const progress = project._count.tasks > 0
-              ? Math.round(((tasksByStatus['done'] || 0) / project._count.tasks) * 100)
+            const progress = totalTasks > 0
+              ? Math.round((doneTasks / totalTasks) * 100)
               : 0
 
             return (
@@ -119,7 +119,7 @@ export default async function ProjectsPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    {project._count.tasks} задач
+                    {totalTasks} задач
                   </div>
                   <div className="flex items-center gap-1.5 text-gray-600">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

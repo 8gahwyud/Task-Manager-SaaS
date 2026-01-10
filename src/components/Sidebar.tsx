@@ -40,6 +40,15 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: '/profile',
+    label: 'Профиль',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    ),
+  },
 ]
 
 export function Sidebar({ user }: SidebarProps) {
@@ -99,9 +108,12 @@ export function Sidebar({ user }: SidebarProps) {
       {/* User section */}
       <div className="p-4 border-t border-gray-200 mt-auto">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white font-semibold">
+          <Link
+            href="/profile"
+            className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-white font-semibold hover:opacity-80 transition-opacity"
+          >
             {user.name.charAt(0).toUpperCase()}
-          </div>
+          </Link>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
             <p className="text-xs text-gray-500 truncate">{user.email}</p>

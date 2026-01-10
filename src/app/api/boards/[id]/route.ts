@@ -9,9 +9,10 @@ const updateSchema = z.object({
   description: z.string().optional().nullable(),
   backgroundColor: z.string().optional().nullable(),
   backgroundImage: z.string().optional().nullable(),
+  position: z.number().optional(),
 })
 
-// Получить проект по ID
+// Получить доску
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -23,61 +24,51 @@ export async function GET(
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
     }
 
-    const project = await prisma.project.findFirst({
+    const board = await prisma.board.findFirst({
       where: {
         id: params.id,
-        OR: [
-          { ownerId: session.user.id },
-          { members: { some: { userId: session.user.id } } },
-        ],
+        project: {
+          OR: [
+            { ownerId: session.user.id },
+            { members: { some: { userId: session.user.id } } },
+          ],
+        },
       },
       include: {
-        owner: {
-          select: { id: true, name: true, email: true },
-        },
-        members: {
+        columns: {
+          orderBy: { position: 'asc' },
           include: {
-            user: {
-              select: { id: true, name: true, email: true },
-            },
+            _count: { select: { tasks: true } },
           },
         },
-        boards: {
+        tasks: {
           include: {
-            columns: {
-              orderBy: { position: 'asc' },
-            },
-            tasks: {
-              include: {
-                assignee: {
-                  select: { id: true, name: true, email: true },
-                },
-                creator: {
-                  select: { id: true, name: true, email: true },
-                },
-              },
-              orderBy: { position: 'asc' },
-            },
+            assignee: { select: { id: true, name: true, email: true } },
+            creator: { select: { id: true, name: true, email: true } },
           },
           orderBy: { position: 'asc' },
         },
+        project: { select: { id: true, name: true } },
       },
     })
 
-    if (!project) {
-      return NextResponse.json({ error: 'Проект не найден' }, { status: 404 })
+    if (!board) {
+      return NextResponse.json(
+        { error: 'Доска не найдена или нет доступа' },
+        { status: 404 }
+      )
     }
 
-    return NextResponse.json(project)
+    return NextResponse.json(board)
   } catch {
     return NextResponse.json(
-      { error: 'Ошибка при получении проекта' },
+      { error: 'Ошибка при получении доски' },
       { status: 500 }
     )
   }
 }
 
-// Обновить проект
+// Обновить доску
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -89,16 +80,28 @@ export async function PATCH(
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
     }
 
-    const project = await prisma.project.findFirst({
+    const board = await prisma.board.findFirst({
       where: {
         id: params.id,
-        ownerId: session.user.id,
+        project: {
+          OR: [
+            { ownerId: session.user.id },
+            {
+              members: {
+                some: {
+                  userId: session.user.id,
+                  role: { in: ['owner', 'admin'] },
+                },
+              },
+            },
+          ],
+        },
       },
     })
 
-    if (!project) {
+    if (!board) {
       return NextResponse.json(
-        { error: 'Проект не найден или нет доступа' },
+        { error: 'Доска не найдена или нет доступа' },
         { status: 404 }
       )
     }
@@ -106,9 +109,14 @@ export async function PATCH(
     const body = await request.json()
     const data = updateSchema.parse(body)
 
-    const updated = await prisma.project.update({
+    const updated = await prisma.board.update({
       where: { id: params.id },
       data,
+      include: {
+        columns: {
+          orderBy: { position: 'asc' },
+        },
+      },
     })
 
     return NextResponse.json(updated)
@@ -120,13 +128,13 @@ export async function PATCH(
       )
     }
     return NextResponse.json(
-      { error: 'Ошибка при обновлении проекта' },
+      { error: 'Ошибка при обновлении доски' },
       { status: 500 }
     )
   }
 }
 
-// Удалить проект
+// Удалить доску
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
@@ -138,32 +146,42 @@ export async function DELETE(
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
     }
 
-    const project = await prisma.project.findFirst({
+    const board = await prisma.board.findFirst({
       where: {
         id: params.id,
-        ownerId: session.user.id,
+        project: {
+          OR: [
+            { ownerId: session.user.id },
+            {
+              members: {
+                some: {
+                  userId: session.user.id,
+                  role: { in: ['owner', 'admin'] },
+                },
+              },
+            },
+          ],
+        },
       },
     })
 
-    if (!project) {
+    if (!board) {
       return NextResponse.json(
-        { error: 'Проект не найден или нет доступа' },
+        { error: 'Доска не найдена или нет доступа' },
         { status: 404 }
       )
     }
 
-    await prisma.project.delete({
+    await prisma.board.delete({
       where: { id: params.id },
     })
 
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(
-      { error: 'Ошибка при удалении проекта' },
+      { error: 'Ошибка при удалении доски' },
       { status: 500 }
     )
   }
 }
-
-
 
