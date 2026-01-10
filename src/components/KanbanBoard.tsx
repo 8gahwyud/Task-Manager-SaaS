@@ -75,6 +75,7 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const router = useRouter()
   const { updateTaskCount } = useBoardCount()
+  const boardContainerRef = useRef<HTMLDivElement>(null)
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [columns, setColumns] = useState<Column[]>(initialColumns.sort((a, b) => a.position - b.position))
   const [activeTask, setActiveTask] = useState<Task | null>(null)
