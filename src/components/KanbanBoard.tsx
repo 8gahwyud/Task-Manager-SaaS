@@ -17,6 +17,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
   horizontalListSortingStrategy,
+  arrayMove,
 } from '@dnd-kit/sortable'
 import toast from 'react-hot-toast'
 import { KanbanColumn } from './KanbanColumn'
@@ -206,16 +207,14 @@ export function KanbanBoard({
         return
       }
 
-      // Пересчитываем позиции на основе исходного порядка и нового положения
+      // Получаем текущий отсортированный массив столбцов
       const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
-      const activeIndex = sortedColumns.findIndex((c) => c.id === activeId)
-      const overIndex = sortedColumns.findIndex((c) => c.id === overId)
+      const oldIndex = sortedColumns.findIndex((c) => c.id === activeId)
+      const newIndex = sortedColumns.findIndex((c) => c.id === overId)
 
-      if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
-        // Создаем новый массив с обновленными позициями
-        const reorderedColumns = [...sortedColumns]
-        const [removed] = reorderedColumns.splice(activeIndex, 1)
-        reorderedColumns.splice(overIndex, 0, removed)
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        // Используем arrayMove для правильного перемещения
+        const reorderedColumns = arrayMove(sortedColumns, oldIndex, newIndex)
 
         // Обновляем позиции для всех столбцов
         const columnsWithNewPositions = reorderedColumns.map((col, index) => ({
@@ -233,8 +232,11 @@ export function KanbanBoard({
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ position: col.position }),
-            }).then(res => {
-              if (!res.ok) throw new Error(`Failed to update column ${col.id}`)
+            }).then(async (res) => {
+              if (!res.ok) {
+                const error = await res.json().catch(() => ({ error: 'Unknown error' }))
+                throw new Error(error.error || `Failed to update column ${col.id}`)
+              }
               return res.json()
             })
           )
@@ -247,7 +249,7 @@ export function KanbanBoard({
           toast.success('Порядок столбцов обновлён')
         } catch (error) {
           console.error('Error updating columns:', error)
-          toast.error('Ошибка при обновлении порядка столбцов')
+          toast.error(error instanceof Error ? error.message : 'Ошибка при обновлении порядка столбцов')
           // Перезагружаем с сервера
           try {
             const res = await fetch(`/api/boards/${boardId}`)
