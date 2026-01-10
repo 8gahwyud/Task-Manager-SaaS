@@ -16,13 +16,22 @@ export function DndBlocker({ boardContainerId }: { boardContainerId?: string }) 
       }
     }
 
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      
+      // Если клик в сайдбаре или header - останавливаем для DndContext
+      if (target.closest('aside') || target.closest('header') || target.closest('[data-no-dnd-block]')) {
+        e.stopImmediatePropagation()
+      }
+    }
+
     // Используем capture phase, чтобы перехватить событие до DndContext
     document.addEventListener('pointerdown', handlePointerDown, true)
-    document.addEventListener('mousedown', handlePointerDown, true)
+    document.addEventListener('mousedown', handleMouseDown, true)
     
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, true)
-      document.removeEventListener('mousedown', handlePointerDown, true)
+      document.removeEventListener('mousedown', handleMouseDown, true)
     }
   }, [boardContainerId])
 

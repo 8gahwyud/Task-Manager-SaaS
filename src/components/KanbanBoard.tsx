@@ -404,10 +404,6 @@ export function KanbanBoard({
       id={`board-${boardId}`}
       className="h-full w-full overflow-hidden relative" 
       style={boardStyle}
-      onPointerDown={(e) => {
-        // Разрешаем события только внутри доски
-        e.stopPropagation()
-      }}
     >
       <div className="h-full w-full overflow-x-auto overflow-y-hidden pointer-events-auto">
         <div className="p-6 flex items-start gap-4 w-max min-h-full">
