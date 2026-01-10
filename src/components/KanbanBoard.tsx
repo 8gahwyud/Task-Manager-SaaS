@@ -206,43 +206,60 @@ export function KanbanBoard({
         return
       }
 
-      // Используем текущее состояние columns (они уже обновлены в handleDragOver с новыми позициями)
-      // Просто отправляем на сервер текущее состояние
-      const columnsToSave = [...columns].sort((a, b) => a.position - b.position)
+      // Пересчитываем позиции на основе исходного порядка и нового положения
+      const sortedColumns = [...columns].sort((a, b) => a.position - b.position)
+      const activeIndex = sortedColumns.findIndex((c) => c.id === activeId)
+      const overIndex = sortedColumns.findIndex((c) => c.id === overId)
 
-      // Отправляем обновления на сервер для каждого столбца с его новой позицией
-      try {
-        const updatePromises = columnsToSave.map((col) =>
-          fetch(`/api/columns/${col.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: col.position }),
-          }).then(res => {
-            if (!res.ok) throw new Error(`Failed to update column ${col.id}`)
-            return res.json()
-          })
-        )
-        
-        const results = await Promise.all(updatePromises)
+      if (activeIndex !== -1 && overIndex !== -1 && activeIndex !== overIndex) {
+        // Создаем новый массив с обновленными позициями
+        const reorderedColumns = [...sortedColumns]
+        const [removed] = reorderedColumns.splice(activeIndex, 1)
+        reorderedColumns.splice(overIndex, 0, removed)
 
-        // Обновляем состояние с данными с сервера
-        const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
-        setColumns(sortedResults)
-        toast.success('Порядок столбцов обновлён')
-      } catch (error) {
-        console.error('Error updating columns:', error)
-        toast.error('Ошибка при обновлении порядка столбцов')
-        // Перезагружаем с сервера
+        // Обновляем позиции для всех столбцов
+        const columnsWithNewPositions = reorderedColumns.map((col, index) => ({
+          ...col,
+          position: index,
+        }))
+
+        // Обновляем локальное состояние оптимистично
+        setColumns(columnsWithNewPositions)
+
+        // Отправляем обновления на сервер
         try {
-          const res = await fetch(`/api/boards/${boardId}`)
-          if (res.ok) {
-            const board = await res.json()
-            setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
-          } else {
+          const updatePromises = columnsWithNewPositions.map((col) =>
+            fetch(`/api/columns/${col.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ position: col.position }),
+            }).then(res => {
+              if (!res.ok) throw new Error(`Failed to update column ${col.id}`)
+              return res.json()
+            })
+          )
+          
+          const results = await Promise.all(updatePromises)
+
+          // Обновляем состояние с данными с сервера
+          const sortedResults = results.sort((a: Column, b: Column) => a.position - b.position)
+          setColumns(sortedResults)
+          toast.success('Порядок столбцов обновлён')
+        } catch (error) {
+          console.error('Error updating columns:', error)
+          toast.error('Ошибка при обновлении порядка столбцов')
+          // Перезагружаем с сервера
+          try {
+            const res = await fetch(`/api/boards/${boardId}`)
+            if (res.ok) {
+              const board = await res.json()
+              setColumns(board.columns.sort((a: Column, b: Column) => a.position - b.position))
+            } else {
+              setColumns(initialColumns.sort((a, b) => a.position - b.position))
+            }
+          } catch {
             setColumns(initialColumns.sort((a, b) => a.position - b.position))
           }
-        } catch {
-          setColumns(initialColumns.sort((a, b) => a.position - b.position))
         }
       }
       return
